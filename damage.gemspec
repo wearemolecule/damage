@@ -18,11 +18,11 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
 
-  s.add_dependency "activesupport", ">= 3.1.0"
-  s.add_dependency "celluloid"
-  s.add_dependency "celluloid-io"
-  s.add_dependency "nokogiri"
-  s.add_dependency "thor"
+  spec.add_dependency "activesupport", ">= 3.1.0"
+  spec.add_dependency "celluloid"
+  spec.add_dependency "celluloid-io"
+  spec.add_dependency "nokogiri"
+  spec.add_dependency "thor"
 
   spec.add_development_dependency "bundler", "~> 1.3"
   spec.add_development_dependency "rake"
