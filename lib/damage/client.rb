@@ -39,7 +39,7 @@ module Damage
     def send_message(socket, message)
       info("Wrote: #{message.gsub("\01", ", ")}")
       socket.write(message)
-      @heartbeat_timer.reset
+      @heartbeat_timer.try(:reset)
       @msg_seq_num += 1
     end
 
@@ -50,7 +50,7 @@ module Damage
 
     rescue IOError, Errno::EBADF, Errno::ECONNRESET
       @listening = false
-      @heartbeat_timer.cancel
+      @heartbeat_timer.try(:cancel)
       info "Connection Closed"
     end
 
