@@ -18,9 +18,10 @@ module Damage
 
     def initialize(listeners)
       @schema = Schema.new("schemas/#{Damage.configuration.schema}.xml")
+      info "Connecting TCP socket"
       @socket = TCPSocket.new(Damage.configuration.server_ip, Damage.configuration.port)
       @msg_seq_num = 1
-      @heartbeat_timer = every(Damage.configuration.heartbeat_int) { async.send_heartbeat }
+      @heartbeat_timer = every(Damage.configuration.heartbeat_int.to_i) { async.send_heartbeat }
       @listening = true
 
       setup_listeners(listeners)
