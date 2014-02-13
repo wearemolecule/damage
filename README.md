@@ -1,6 +1,8 @@
 # Damage
 
-TODO: Write a gem description
+Damage is a FIX (Financial Information eXchange) Client for Ruby.
+
+Damage uses Celluloid to manage connections to FIX providers.
 
 ## Installation
 
