@@ -28,6 +28,8 @@ module Damage
       case type.to_s
       when "INT"
         value.to_i
+      when "PRICE"
+        BigDecimal.new("#{value}e-2")
       when "UTCTIMESTAMP"
         tz = ActiveSupport::TimeZone["UTC"]
         tz.parse(value)

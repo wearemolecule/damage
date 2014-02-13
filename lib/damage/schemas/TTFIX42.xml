@@ -2623,7 +2623,9 @@
 
     <!-- TT SPECIFIC FIELDS -->
     <field number="6038" name="OrderEnteredTime" type="UTCTIMESTAMP"/>
+    <field number="10455" name="SecurityAltID" type="STRING"/>
     <field number="10527" name="SecondaryExecID" type="STRING"/>
+    <field number="10553" name="TTUsername" type="STRING"/>
     <field number="10828" name="TrdType" type="INT"/>
     <field number="11028" name="ManualOrderIndicator" type="CHAR"/>
     <field number="16017" name="OrigExecID" type="STRING"/>
