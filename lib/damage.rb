@@ -1,7 +1,7 @@
 require "damage/version"
 require 'nokogiri'
 require 'celluloid/io'
-require 'active_support/time_zone'
+require 'active_support'
 require "damage/schema"
 require "damage/message_type"
 require "damage/message_listener"
