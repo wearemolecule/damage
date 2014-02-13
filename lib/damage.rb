@@ -1,6 +1,13 @@
 require "damage/version"
 require 'nokogiri'
-require 'celluloid-io'
+require 'celluloid/io'
+require 'active_support/time_zone'
+require "damage/schema"
+require "damage/message_type"
+require "damage/message_listener"
+require "damage/message"
+require "damage/response"
+require "damage/client"
 
 module Damage
   #ASCII Start Of Header
