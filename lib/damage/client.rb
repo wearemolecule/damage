@@ -4,24 +4,23 @@ module Damage
     include Celluloid::Logger
     finalizer :shut_down
 
-    HEART_BT_INT = ENV['TT_HEART_BT_INT']
     BUFFER_SIZE = 10240
 
     attr_accessor :heartbeat_timer, :socket, :listeners
 
     def default_headers
       {
-        'SenderCompID' => ENV['TT_FIX_SENDER'],
-        'TargetCompID' => ENV['TT_FIX_TARGET'],
+        'SenderCompID' => Damage.configuration.sender_id,
+        'TargetCompID' => Damage.configuration.target_id,
         'MsgSeqNum'    => @msg_seq_num
       }
     end
 
     def initialize(listeners)
-      @schema = Schema.new("schemas/TTFIX42.xml")
-      @socket = TCPSocket.new(ENV['TT_FIX_IP'], ENV['TT_FIX_PORT'])
+      @schema = Schema.new("schemas/#{Damage.configuration.schema}.xml")
+      @socket = TCPSocket.new(Damage.configuration.server_ip, Damage.configuration.port)
       @msg_seq_num = 1
-      @heartbeat_timer = every(HEART_BT_INT) { async.send_heartbeat }
+      @heartbeat_timer = every(Damage.configuration.heartbeat_int) { async.send_heartbeat }
       @listening = true
 
       setup_listeners(listeners)
@@ -77,8 +76,8 @@ module Damage
     def send_logon
       params = {
         'EncryptMethod' => "0",
-        'HeartBtInt' => HEART_BT_INT.to_s,
-        'RawData' => "12345678",
+        'HeartBtInt' => Damage.configuration.heartbeat_int.to_s,
+        'RawData' => Damage.configuration.password,
         'ResetSeqNumFlag' => "Y"
       }
 
