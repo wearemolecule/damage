@@ -3,6 +3,10 @@ require 'nokogiri'
 require 'celluloid-io'
 
 module Damage
+  #ASCII Start Of Header
+  #Used to delimit traditional FIX messages
+  SOH = "\01"
+
   class Configuration
     attr_accessor :server_ip, :port, :sender_id, :target_id, :password, :heartbeat_int, :schema, :persistent
 
