@@ -10,7 +10,6 @@ module Damage
     end
 
     included do
-      include Celluloid
       include Celluloid::Logger
       extend ClassMethods
     end

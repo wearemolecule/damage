@@ -18,8 +18,13 @@ module Damage
     end
 
     def field_number(name)
-      field = fields.xpath("field[@name='#{name}']")[0]
-      field.attribute('number').value
+      if match = name.match(/Unknown(\d*)/)
+        match[1]
+      else
+        field = fields.xpath("field[@name='#{name}']")[0]
+        raise UnknownFieldNameError, "couldn't find #{name}" unless field
+        field.attribute('number').value
+      end
     end
 
     def field_type(number)
@@ -30,6 +35,7 @@ module Damage
 
     def msg_name(msg_type)
       field = @document.xpath("//messages/message[@msgtype='#{msg_type}']")[0]
+      raise UnknownMessageTypeError unless field
       field.attribute('name').value
     end
 

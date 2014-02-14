@@ -10,10 +10,6 @@ module Damage
       @properties = properties
     end
 
-    def all_properties
-      @properties.merge
-    end
-
     def headers
       @headers.merge({
         'SendingTime' => Time.new.utc.strftime('%Y%m%d-%H:%M:%S.%3N')
@@ -23,6 +19,11 @@ module Damage
     def fixify(hash)
       hash.map { |k,v|
         num = @schema.field_number(k)
+        type = @schema.field_type(num)
+        if type == "BOOLEAN"
+          v ? "Y" : "N"
+        end
+
         "#{num}=#{v}"
       }
     end

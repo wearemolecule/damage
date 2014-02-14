@@ -10,6 +10,12 @@ module Damage
       @schema.msg_name(type_number)
     end
 
+    def underscored_keys
+      Hash[*message_hash.map { |k,v|
+        [k.underscore, v]
+      }.flatten]
+    end
+
     def message_hash
       @message_hash ||= Hash[*message_components.map { |comp|
         key, value = comp.split("=")
