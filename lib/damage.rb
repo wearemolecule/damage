@@ -36,10 +36,6 @@ module Damage
       self.persistence_options = {}
       self.persistence_class = Damage::Persistence::NullPersistence
     end
-
-    def reset_seq_num_flag
-      persistent ? "N" : "Y"
-    end
   end
 
   def self.configuration

@@ -6,7 +6,7 @@ module Damage
 
     BUFFER_SIZE = 10240
 
-    attr_accessor :heartbeat_timer, :socket, :listeners, :config, :persistence, :schema
+    attr_accessor :heartbeat_timer, :socket, :listeners, :config, :persistence, :schema, :logged_out
 
     def default_headers
       {
@@ -71,13 +71,22 @@ module Damage
         async.send_heartbeat(response.test_request_i_d)
       when "Logon"
         #successful logon - request any missing messages
+        logged_out = false
         async.request_missing_messages
+      when "Logout"
+        logged_out = true
+        self.terminate
       when "ResendRequest"
         async.resend_requests(response)
       else
         if listeners.has_key?(message_type)
-          processor = listeners[message_type].new
-          processor.process(response)
+          begin
+            processor = listeners[message_type].new
+            processor.process(response)
+          rescue StandardError => e
+            info e
+            info e.backtrace
+          end
         end
       end
     rescue UnknownMessageTypeError
@@ -93,7 +102,7 @@ module Damage
         'EncryptMethod' => "0",
         'HeartBtInt' => config.heartbeat_int.to_s,
         'RawData' => config.password,
-        'ResetSeqNumFlag' => config.reset_seq_num_flag
+        'ResetSeqNumFlag' => !config.persistent
       }
 
       message_str = Message.new(@schema, "Logon", default_headers, params).full_message
@@ -126,15 +135,26 @@ module Damage
       persistence.messages_to_resend(message.begin_seq_no, message.end_seq_no).each do |params|
         type_key = params.delete("MsgType")
         type = @schema.msg_name(type_key)
-        params["PossDupFlag"] = "Y"
-        message_str = Message.new(@schema, type, default_headers.except("MsgSeqNum"), params).full_message
+        headers = default_headers.except("MsgSeqNum")
+        message = if ["Logon", "Logout", "ResendRequest"].include?(type)
+          seq_num = params["MsgSeqNum"].to_i
+          new_params = {}
+          new_params["MsgSeqNum"] = seq_num.to_s
+          new_params["GapFillFlag"] = true
+          new_params["NewSeqNo"] = (seq_num + 1).to_s
+          new_params["PossDupFlag"] = true
+          Message.new(@schema, "SequenceReset", headers, new_params)
+        else
+          params["PossDupFlag"] = true
+          Message.new(@schema, type, headers, params)
+        end
 
-        send_message(@socket, message_str, true)
+        send_message(@socket, message.full_message, true)
       end
     end
 
     def send_heartbeat(request_id = nil)
-      params = if !request_id.nil?
+      params = if request_id.nil?
                  {}
                else
                  {'TestReqID' => request_id}
@@ -146,7 +166,7 @@ module Damage
 
     def shut_down
       info "Shutting down..."
-      send_logout if @socket
+      send_logout if @socket and !logged_out
     rescue Errno::EPIPE
       #socket already closed
     ensure

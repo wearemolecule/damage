@@ -21,10 +21,12 @@ module Damage
         num = @schema.field_number(k)
         type = @schema.field_type(num)
         if type == "BOOLEAN"
-          v ? "Y" : "N"
+          val = v ? "Y" : "N"
+        else
+          val = v
         end
 
-        "#{num}=#{v}"
+        "#{num}=#{val}"
       }
     end
 
