@@ -56,9 +56,8 @@ module Damage
       async.message_processor(response)
 
     rescue IOError, Errno::EBADF, Errno::ECONNRESET
-      @listening = false
-      @heartbeat_timer.try(:cancel)
       info "Connection Closed"
+      raise FixSocketClosedError, "socket was closed on us"
     rescue Errno::ETIMEDOUT
       #no biggie, keep listening
     end
@@ -71,11 +70,10 @@ module Damage
         async.send_heartbeat(response.test_request_i_d)
       when "Logon"
         #successful logon - request any missing messages
-        logged_out = false
+        self.logged_out = false
         async.request_missing_messages
       when "Logout"
-        logged_out = true
-        self.terminate
+        self.logged_out = true
       when "ResendRequest"
         async.resend_requests(response)
       else
@@ -137,6 +135,7 @@ module Damage
         type = @schema.msg_name(type_key)
         headers = default_headers.except("MsgSeqNum")
         message = if ["Logon", "Logout", "ResendRequest"].include?(type)
+          #TODO coalesce resend of session level messages into single sequence reset
           seq_num = params["MsgSeqNum"].to_i
           new_params = {}
           new_params["MsgSeqNum"] = seq_num.to_s

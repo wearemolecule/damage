@@ -5,6 +5,10 @@ module Damage
       @message = message
     end
 
+    def original_message
+      @message
+    end
+
     def message_type
       type_number = message_hash["MsgType"]
       @schema.msg_name(type_number)
@@ -35,7 +39,11 @@ module Damage
       when "INT"
         value.to_i
       when "PRICE"
-        BigDecimal.new("#{value}e-2")
+        if value.include?(".")
+          BigDecimal.new("#{value}")
+        else
+          BigDecimal.new("#{value}e-2")
+        end
       when "UTCTIMESTAMP"
         tz = ActiveSupport::TimeZone["UTC"]
         tz.parse(value)

@@ -18,6 +18,7 @@ module Damage
 
   class UnknownMessageTypeError < StandardError; end
   class UnknownFieldNameError < StandardError; end
+  class FixSocketClosedError < StandardError; end
 
   class Configuration
     attr_accessor :server_ip, :port, :sender_id, :target_id, :password, :heartbeat_int, :schema, :persistent, :persistence_options, :persistence_class
