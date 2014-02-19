@@ -4,7 +4,7 @@ module Damage
     include Celluloid::Logger
     finalizer :shut_down
 
-    BUFFER_SIZE = 10240
+    BUFFER_SIZE = 4096
 
     attr_accessor :heartbeat_timer, :socket, :listeners, :config, :persistence, :schema, :logged_out
 
@@ -51,9 +51,11 @@ module Damage
 
     def read_message(socket)
       data = socket.readpartial(BUFFER_SIZE)
-      response = Response.new(@schema, data)
-      persistence.persist_rcvd(response)
-      async.message_processor(response)
+      responses = ResponseExtractor.new(@schema, data).responses
+      responses.each do |response|
+        persistence.persist_rcvd(response)
+        async.message_processor(response)
+      end
 
     rescue IOError, Errno::EBADF, Errno::ECONNRESET
       info "Connection Closed"

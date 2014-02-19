@@ -6,6 +6,7 @@ require "damage/schema"
 require "damage/message_type"
 require "damage/message_listener"
 require "damage/message"
+require "damage/response_extractor"
 require "damage/response"
 require "damage/persistence/null_persistence"
 require "damage/persistence/file_persistence"
@@ -19,6 +20,7 @@ module Damage
   class UnknownMessageTypeError < StandardError; end
   class UnknownFieldNameError < StandardError; end
   class FixSocketClosedError < StandardError; end
+  class MessageParseError < StandardError; end
 
   class Configuration
     attr_accessor :server_ip, :port, :sender_id, :target_id, :password, :heartbeat_int, :schema, :persistent, :persistence_options, :persistence_class
