@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/wearemolecule/damage.png?branch=master)](https://travis-ci.org/wearemolecule/damage)
+
 # Damage
 
 Damage is a FIX (Financial Information eXchange) Client for Ruby.
