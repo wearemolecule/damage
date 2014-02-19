@@ -23,17 +23,10 @@ module Damage
   class MessageParseError < StandardError; end
 
   class Configuration
-    attr_accessor :server_ip, :port, :sender_id, :target_id, :password, :heartbeat_int, :schema, :persistent, :persistence_options, :persistence_class
+    attr_accessor :heartbeat_int, :persistent, :persistence_options, :persistence_class
 
     def initialize
-      self.server_ip = '127.0.0.1'
-      self.port = 10690
-      self.sender_id = "SENDER"
-      self.target_id = "TARGET"
-      self.password = ""
       self.heartbeat_int = 30
-      self.schema = "TTFIX42"
-
       #Does not keep track of message sequence (resets count each time)
       self.persistent = false
       self.persistence_options = {}

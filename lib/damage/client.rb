@@ -6,21 +6,22 @@ module Damage
 
     BUFFER_SIZE = 4096
 
-    attr_accessor :heartbeat_timer, :socket, :listeners, :config, :persistence, :schema, :logged_out
+    attr_accessor :heartbeat_timer, :socket, :listeners, :config, :options, :persistence, :schema, :logged_out
 
     def default_headers
       {
-        'SenderCompID' => config.sender_id,
-        'TargetCompID' => config.target_id,
+        'SenderCompID' => options[:sender_id],
+        'TargetCompID' => options[:target_id],
         'MsgSeqNum'    => @msg_seq_num
       }
     end
 
-    def initialize(listeners)
+    def initialize(listeners, options={})
       self.config = Damage.configuration
-      self.schema = Schema.new("schemas/#{config.schema}.xml")
+      self.options = options
+      self.schema = Schema.new("schemas/#{options[:schema]}.xml")
       self.persistence = config.persistence_class.new(config.persistence_options)
-      self.socket = TCPSocket.new(config.server_ip, config.port)
+      self.socket = TCPSocket.new(options[:server_ip], options[:port])
       @msg_seq_num = self.persistence.current_sent_seq_num
       self.heartbeat_timer = every(config.heartbeat_int.to_i) { async.send_heartbeat }
       @listening = true
@@ -101,7 +102,7 @@ module Damage
       params = {
         'EncryptMethod' => "0",
         'HeartBtInt' => config.heartbeat_int.to_s,
-        'RawData' => config.password,
+        'RawData' => options[:password],
         'ResetSeqNumFlag' => !config.persistent
       }
 
