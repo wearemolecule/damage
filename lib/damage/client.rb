@@ -19,8 +19,9 @@ module Damage
     def initialize(listeners, options={})
       self.config = Damage.configuration
       self.options = options
-      self.schema = Schema.new("schemas/#{options[:schema]}.xml")
-      self.persistence = config.persistence_class.new(config.persistence_options)
+      self.schema = Schema.new("schemas/#{options[:schema] || "TTFIX42"}.xml")
+      extra_persistence_options = options[:extra_persistence_options] || {}
+      self.persistence = config.persistence_class.new(config.persistence_options.merge(extra_persistence_options))
       self.socket = TCPSocket.new(options[:server_ip], options[:port])
       @msg_seq_num = self.persistence.current_sent_seq_num
       self.heartbeat_timer = every(config.heartbeat_int.to_i) { async.send_heartbeat }
@@ -83,7 +84,7 @@ module Damage
         if listeners.has_key?(message_type)
           begin
             processor = listeners[message_type].new
-            processor.process(response)
+            processor.process(response, options)
           rescue StandardError => e
             info e
             info e.backtrace
