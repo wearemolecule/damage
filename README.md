@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/wearemolecule/damage.png?branch=master)](https://travis-ci.org/wearemolecule/damage)
+[![Code Climate](https://codeclimate.com/github/wearemolecule/damage.png)](https://codeclimate.com/github/wearemolecule/damage)
 
 # Damage
 
