@@ -34,14 +34,12 @@ module Damage
     end
 
     def msg_name(msg_type)
-      field = @document.xpath("//messages/message[@msgtype='#{msg_type}']")[0]
-      raise UnknownMessageTypeError unless field
+      field = message_lookup 'msgtype', msg_type
       field.attribute('name').value
     end
 
     def msg_type(msg_name)
-      field = @document.xpath("//messages/message[@name='#{msg_name}']")[0]
-      raise UnknownMessageTypeError unless field
+      field = message_lookup 'name', msg_name
       field.attribute('msgtype').value
     end
 
@@ -50,6 +48,13 @@ module Damage
       major = fix_root.attribute("major").value
       minor = fix_root.attribute("minor").value
       "FIX.#{major}.#{minor}"
+    end
+
+    private
+    def message_lookup(field, value)
+      field = @document.xpath("//messages/message[@#{field}='#{value}']")[0]
+      raise UnknownMessageTypeError unless field
+      field
     end
   end
 end
