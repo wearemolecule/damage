@@ -1,4 +1,5 @@
 require 'pry'
+require 'timecop'
 require File.expand_path('../../lib/damage', __FILE__)
 
 RSpec.configure do |config|

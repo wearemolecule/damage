@@ -30,12 +30,12 @@ module Damage
       }
     end
 
-    def first_fields
-      "8=#{@schema.begin_string}" + SOH + "9=#{body.length}" + SOH
+    def body
+      @body ||= ["35=#{type}", fixify(headers), fixify(properties)].flatten.join(SOH) + SOH
     end
 
-    def body
-      @body ||= ["35=#{@type.msgtype_code}", fixify(headers), fixify(properties)].flatten.join(SOH) + SOH
+    def first_fields
+      "8=#{@schema.begin_string}" + SOH + "9=#{body.length}" + SOH
     end
 
     def message_without_checksum

@@ -40,7 +40,9 @@ module Damage
     end
 
     def msg_type(msg_name)
-      MessageType.new(@document.xpath("//messages/message[@name='#{msg_name}']")[0])
+      field = @document.xpath("//messages/message[@name='#{msg_name}']")[0]
+      raise UnknownMessageTypeError unless field
+      field.attribute('msgtype').value
     end
 
     def begin_string

@@ -3,7 +3,6 @@ require 'nokogiri'
 require 'celluloid/io'
 require 'active_support'
 require "damage/schema"
-require "damage/message_type"
 require "damage/message_listener"
 require "damage/message"
 require "damage/response_extractor"
