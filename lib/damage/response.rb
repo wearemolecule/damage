@@ -5,19 +5,24 @@ module Damage
       @message = message
     end
 
-    def original_message
-      @message
+    def cast_field_value(type, value)
+      case type.to_s
+      when "INT"
+        value.to_i
+      when "PRICE"
+        BigDecimal.new("#{value}e-2")
+      when "UTCTIMESTAMP"
+        tz = ActiveSupport::TimeZone["UTC"]
+        tz.parse(value)
+      when "BOOLEAN"
+        value == "Y" ? true : false
+      else
+        value
+      end
     end
 
-    def message_type
-      type_number = message_hash["MsgType"]
-      @schema.msg_name(type_number)
-    end
-
-    def underscored_keys
-      Hash[*message_hash.map { |k,v|
-        [k.underscore, v]
-      }.flatten]
+    def message_components
+      @message.split(SOH)
     end
 
     def message_hash
@@ -30,28 +35,19 @@ module Damage
       }.flatten]
     end
 
-    def message_components
-      @message.split(SOH)
+    def message_type
+      type_number = message_hash["MsgType"]
+      @schema.msg_name(type_number)
     end
 
-    def cast_field_value(type, value)
-      case type.to_s
-      when "INT"
-        value.to_i
-      when "PRICE"
-        if value.include?(".")
-          BigDecimal.new("#{value}")
-        else
-          BigDecimal.new("#{value}e-2")
-        end
-      when "UTCTIMESTAMP"
-        tz = ActiveSupport::TimeZone["UTC"]
-        tz.parse(value)
-      when "BOOLEAN"
-        value == "Y" ? true : false
-      else
-        value
-      end
+    def original_message
+      @message
+    end
+
+    def underscored_keys
+      Hash[*message_hash.map { |k,v|
+        [k.underscore, v]
+      }.flatten]
     end
 
     #easy access to properties

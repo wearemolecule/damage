@@ -1,15 +1,19 @@
-require "damage/version"
-require 'nokogiri'
+require 'active_support/concern'
+require 'active_support/time_with_zone'
+require 'active_support/core_ext/time'
+require 'bigdecimal'
 require 'celluloid/io'
-require 'active_support'
-require "damage/schema"
-require "damage/message_listener"
-require "damage/message"
-require "damage/response_extractor"
-require "damage/response"
-require "damage/persistence/null_persistence"
-require "damage/persistence/file_persistence"
+require 'nokogiri'
+
 require "damage/client"
+require "damage/message"
+require "damage/message_listener"
+require "damage/persistence/file_persistence"
+require "damage/persistence/null_persistence"
+require "damage/response"
+require "damage/response_extractor"
+require "damage/schema"
+require "damage/version"
 
 module Damage
   #ASCII Start Of Header
