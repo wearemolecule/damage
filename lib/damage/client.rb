@@ -78,6 +78,7 @@ module Damage
         async.request_missing_messages
       when "Logout"
         self.logged_out = true
+        self.terminate
       when "ResendRequest"
         async.resend_requests(response)
       else
@@ -152,11 +153,14 @@ module Damage
       send_message(@socket, message_str)
     end
 
+    def graceful_shutdown!
+      send_logout if @socket
+    rescue Errno::EPIPE
+      shut_down
+    end
+
     def shut_down
       info "Shutting down..."
-      send_logout if @socket and !logged_out
-    rescue Errno::EPIPE
-      #socket already closed
     ensure
       @listening = false
       @heartbeat_timer.try(:cancel)
