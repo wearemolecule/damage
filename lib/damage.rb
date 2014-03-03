@@ -1,9 +1,15 @@
 require 'active_support/concern'
 require 'active_support/time_with_zone'
-require 'active_support/core_ext/time'
+require 'active_support/core_ext/hash'
+require 'active_support/core_ext/time/acts_like'
+require 'active_support/core_ext/time/calculations'
+require 'active_support/core_ext/time/conversions'
+require 'active_support/core_ext/time/marshal'
+require 'active_support/core_ext/time/zones'
 require 'bigdecimal'
 require 'celluloid/io'
 require 'nokogiri'
+require 'tzinfo'
 
 require "damage/client"
 require "damage/message"
