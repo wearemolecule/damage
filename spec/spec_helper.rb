@@ -1,6 +1,7 @@
 require 'pry'
 require 'timecop'
 require File.expand_path('../../lib/damage', __FILE__)
+Dir["./spec/support/**/*.rb"].sort.each {|f| require f}
 
 RSpec.configure do |config|
   config.treat_symbols_as_metadata_keys_with_true_values = true

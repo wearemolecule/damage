@@ -8,6 +8,7 @@ require 'nokogiri'
 require "damage/client"
 require "damage/message"
 require "damage/message_listener"
+require "damage/message_resend_processor"
 require "damage/persistence/file_persistence"
 require "damage/persistence/null_persistence"
 require "damage/response"

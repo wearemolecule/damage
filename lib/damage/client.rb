@@ -133,25 +133,10 @@ module Damage
       end
     end
 
-    def resend_requests(message)
-      persistence.messages_to_resend(message.begin_seq_no, message.end_seq_no).each do |params|
-        type_key = params.delete("MsgType")
-        type = @schema.msg_name(type_key)
-        headers = default_headers.except("MsgSeqNum")
-        message = if ["Logon", "Logout", "ResendRequest"].include?(type)
-          #TODO coalesce resend of session level messages into single sequence reset
-          seq_num = params["MsgSeqNum"].to_i
-          new_params = {}
-          new_params["MsgSeqNum"] = seq_num.to_s
-          new_params["GapFillFlag"] = true
-          new_params["NewSeqNo"] = (seq_num + 1).to_s
-          new_params["PossDupFlag"] = true
-          Message.new(@schema, "SequenceReset", headers, new_params)
-        else
-          params["PossDupFlag"] = true
-          Message.new(@schema, type, headers, params)
-        end
-
+    def resend_requests(request)
+      messages_to_resend = persistence.messages_to_resend(request.begin_seq_no, request.end_seq_no)
+      messages = MessageResendProcessor.new(messages_to_resend, schema).reduced_messages
+      messages.each do |message|
         send_message(@socket, message.full_message, true)
       end
     end

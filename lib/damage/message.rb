@@ -1,7 +1,6 @@
 module Damage
   class Message
-    attr_accessor :schema, :type
-    attr_reader :properties
+    attr_accessor :schema, :type, :properties
 
     def initialize(schema, type, headers, properties)
       @schema = schema
