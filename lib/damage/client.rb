@@ -136,7 +136,7 @@ module Damage
 
     def resend_requests(request)
       messages_to_resend = persistence.messages_to_resend(request.begin_seq_no, request.end_seq_no)
-      messages = MessageResendProcessor.new(messages_to_resend, schema).reduced_messages
+      messages = MessageResendProcessor.new(messages_to_resend, default_headers, schema).reduced_messages
       messages.each do |message|
         send_message(@socket, message.full_message, true)
       end
