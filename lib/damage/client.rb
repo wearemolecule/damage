@@ -67,6 +67,7 @@ module Damage
     def read_message(socket)
       data = ""
       while buff = full_read_partial(socket)
+        info "readbuff: #{buff}"
         data << buff
       end
       info "RcvdChunk: #{data.gsub("\01", ", ")}"
