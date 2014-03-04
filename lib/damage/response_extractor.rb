@@ -40,6 +40,8 @@ module Damage
       [buffer[0..index], buffer[index+1..-1]]
     rescue MessageParseError
       return [false, buffer]
+    rescue
+      return [false, buffer]
     end
 
     def extract_length(buffer)

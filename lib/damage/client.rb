@@ -59,6 +59,7 @@ module Damage
 
     def read_message(socket)
       data = socket.readpartial(BUFFER_SIZE)
+      info "RcvdChunk: #{data.gsub("\01", ", ")}"
       responses = ResponseExtractor.new(@schema, data).responses
       responses.each do |response|
         persistence.persist_rcvd(response)
