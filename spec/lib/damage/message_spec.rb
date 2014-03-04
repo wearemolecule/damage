@@ -4,8 +4,8 @@ describe Damage::Message do
   let(:klass) { self.described_class }
   let(:schema) { double("schema") }
   let(:msg_to_type) { {"Heartbeat" => "0"} }
-  let(:name_to_num) { {"SendingTime" => "10", "BooleanField" => "11", "StringField" => "12"} }
-  let(:num_to_type) { {"10" => "STRING", "11" => "BOOLEAN", "12" => "STRING"} }
+  let(:name_to_num) { {"SendingTime" => "10", "BooleanField" => "11", "StringField" => "12", "UtcField" => "13"} }
+  let(:num_to_type) { {"10" => "UTCTIMESTAMP", "11" => "BOOLEAN", "12" => "STRING", "13" => "UTCTIMESTAMP"} }
   let(:headers) { {} }
   let(:properties) { {} }
   let(:current_time) { Time.utc(2013,1,1,0,0,0) }
@@ -45,8 +45,8 @@ describe Damage::Message do
     end
 
     context "string field" do
-      let(:properties) { {"SendingTime" => "Hello"} }
-      it { should eq ["10=Hello"] }
+      let(:properties) { {"StringField" => "Hello"} }
+      it { should eq ["12=Hello"] }
     end
 
     context "boolean field" do
@@ -59,9 +59,14 @@ describe Damage::Message do
       end
     end
 
+    context "utc field" do
+      let(:properties) { {"UtcField" => current_time} }
+      it { should eq ["13=20130101-00:00:00.000"] }
+    end
+
     context "mix" do
-      let(:properties) { {"SendingTime" => "Hello", "BooleanField" => true} }
-      it { should eq ["10=Hello", "11=Y"] }
+      let(:properties) { {"UtcField" => current_time, "StringField" => "Hello", "BooleanField" => true} }
+      it { should eq ["13=20130101-00:00:00.000", "12=Hello", "11=Y"] }
     end
   end
 

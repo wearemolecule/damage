@@ -11,7 +11,7 @@ module Damage
 
     def headers
       @headers.merge({
-        'SendingTime' => Time.new.utc.strftime('%Y%m%d-%H:%M:%S.%3N')
+        'SendingTime' => Time.new.utc
       })
     end
 
@@ -21,6 +21,8 @@ module Damage
         type = @schema.field_type(num)
         if type == "BOOLEAN"
           val = v ? "Y" : "N"
+        elsif type == "UTCTIMESTAMP"
+          val = v.strftime('%Y%m%d-%H:%M:%S.%3N')
         else
           val = v
         end
