@@ -4,7 +4,7 @@ module Damage
     include Celluloid::Logger
     finalizer :shut_down
 
-    BUFFER_SIZE = 4096
+    BUFFER_SIZE = 16384
     REMOTE_LOSS_TOLERANCE = 2
 
     attr_accessor :heartbeat_timer, :socket, :listeners, :config,
