@@ -11,6 +11,9 @@ module Damage
       def file_from_path(*)
       end
 
+      def reset_sequence(*)
+      end
+
       def persist_sent(*)
       end
 

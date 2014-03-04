@@ -87,6 +87,8 @@ module Damage
       when "Logout"
         self.logged_out = true
         self.terminate
+      when "SequenceReset"
+        async.sequence_reset(response)
       when "ResendRequest"
         async.resend_requests(response)
       else
@@ -173,6 +175,10 @@ module Damage
         info "Requesting messages #{start} through #{finish}"
         send_message(@socket, message_str)
       end
+    end
+
+    def sequence_reset(request)
+      persistence.reset_sequence(request)
     end
 
     def resend_requests(request)
