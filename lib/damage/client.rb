@@ -5,8 +5,12 @@ module Damage
     finalizer :shut_down
 
     BUFFER_SIZE = 4096
+    REMOTE_LOSS_TOLERANCE = 2
 
-    attr_accessor :heartbeat_timer, :socket, :listeners, :config, :options, :persistence, :schema, :logged_out
+    attr_accessor :heartbeat_timer, :socket, :listeners, :config,
+      :options, :persistence, :schema, :logged_out, :last_remote_heartbeat,
+      :heartbeat_interval
+    attr_reader :test_request_sent
 
     def default_headers
       {
@@ -24,7 +28,9 @@ module Damage
       self.persistence = config.persistence_class.new(config.persistence_options.merge(extra_persistence_options))
       self.socket = TCPSocket.new(options[:server_ip], options[:port])
       @msg_seq_num = self.persistence.current_sent_seq_num
-      self.heartbeat_timer = every(config.heartbeat_int.to_i) { async.send_heartbeat }
+      self.heartbeat_interval = config.heartbeat_int.to_i
+      self.heartbeat_timer = every(self.heartbeat_interval) { async.send_heartbeat }
+      self.last_remote_heartbeat = Time.now
       @listening = true
 
       setup_listeners(listeners)
@@ -67,6 +73,8 @@ module Damage
     end
 
     def message_processor(response)
+      self.last_remote_heartbeat = Time.now
+
       message_type = response.message_type
       info "#{message_type} Received: #{response.message_hash}"
       case message_type
@@ -98,6 +106,39 @@ module Damage
 
     def setup_listeners(listener_classes)
       @listeners = Hash[*listener_classes.map { |l| [l.fix_message_name, l] }.flatten]
+    end
+
+    def time_since(start)
+      start ? (Time.now - start).to_i : 0
+    end
+
+    def time_since_test_request
+      time_since(self.test_request_sent)
+    end
+
+    def time_since_heartbeat
+      time_since(self.last_remote_heartbeat)
+    end
+
+    def above_loss_tolerance(time_since)
+      time_since >= REMOTE_LOSS_TOLERANCE * self.heartbeat_interval
+    end
+
+    def check_if_remote_alive
+      if above_loss_tolerance(time_since_test_request)
+        return self.terminate
+      end
+      if above_loss_tolerance(time_since_heartbeat)
+        self.send_test_request
+      end
+    end
+
+    def send_test_request
+      @test_request_sent = Time.now
+      params = {"TestReqID" => @test_request_sent}
+      message_str = Message.new(@schema, "TestRequest", default_headers, params).full_message
+      info "Sending TestRequest:"
+      send_message(@socket, message_str)
     end
 
     def send_logon
@@ -151,6 +192,8 @@ module Damage
       message_str = Message.new(@schema, "Heartbeat", default_headers, params).full_message
       info "Sending Heartbeat"
       send_message(@socket, message_str)
+
+      check_if_remote_alive
     end
 
     def graceful_shutdown!
@@ -164,7 +207,7 @@ module Damage
     ensure
       @listening = false
       @heartbeat_timer.try(:cancel)
-      @socket.close
+      @socket.try(:close)
     end
   end
 
