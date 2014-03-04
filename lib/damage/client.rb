@@ -59,8 +59,8 @@ module Damage
     end
 
     def full_read_partial(socket)
-      socket.to_io.readpartial(BUFFER_SIZE)
-    rescue EOFError
+      socket.to_io.read_nonblock(BUFFER_SIZE)
+    rescue Errno::EAGAIN
       nil
     end
 
