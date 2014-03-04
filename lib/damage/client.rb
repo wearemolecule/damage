@@ -4,7 +4,7 @@ module Damage
     include Celluloid::Logger
     finalizer :shut_down
 
-    BUFFER_SIZE = 16384
+    BUFFER_SIZE = 4096
     REMOTE_LOSS_TOLERANCE = 2
 
     attr_accessor :heartbeat_timer, :socket, :listeners, :config,
@@ -41,6 +41,7 @@ module Damage
 
     def run
       while @listening do
+        sleep(0.1)
         read_message(@socket)
       end
     end
@@ -57,8 +58,17 @@ module Damage
       heartbeat_timer.try(:reset)
     end
 
+    def full_read_partial(socket)
+      socket.to_io.readpartial(BUFFER_SIZE)
+    rescue EOFError
+      nil
+    end
+
     def read_message(socket)
-      data = socket.readpartial(BUFFER_SIZE)
+      data = ""
+      while buff = full_read_partial(socket)
+        data << buff
+      end
       info "RcvdChunk: #{data.gsub("\01", ", ")}"
       responses = ResponseExtractor.new(@schema, data).responses
       responses.each do |response|

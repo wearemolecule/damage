@@ -22,34 +22,32 @@ module Damage
     end
 
     def read_next_message(buffer)
-      return [false, buffer] if buffer.length < 2
+      return [false, ""] if buffer.length < 2
 
       index = buffer.index("8=")
-      return [false, buffer] if index == -1
+      return [false, ""] if index.nil?
 
       buffer = buffer[index..-1]
 
       len, header_end = extract_length(buffer)
 
       index = buffer.index(SOH + "10=", header_end)
-      return [false, buffer] if index == -1
+      return [false, buffer[header_end..-1]] if index.nil?
       return [false, buffer[header_end..-1]] if len != index - header_end
 
       index = buffer.index(SOH, index + 1)
 
       [buffer[0..index], buffer[index+1..-1]]
     rescue MessageParseError
-      return [false, buffer]
-    rescue
-      return [false, buffer]
+      return [false, ""]
     end
 
     def extract_length(buffer)
       start_pos = buffer.index(SOH + "9=")
-      raise MessageParseError, "Missing message size" if start_pos == -1
+      raise MessageParseError, "Missing message size" if start_pos.nil?
       start_pos += 3
       end_pos = buffer.index(SOH, start_pos)
-      raise MessageParseError, "Missing message size" if end_pos == -1
+      raise MessageParseError, "Missing message size" if end_pos.nil?
 
       [buffer[start_pos..end_pos].to_i, end_pos]
     end
