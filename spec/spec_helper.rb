@@ -1,6 +1,7 @@
 require 'pry'
 require 'timecop'
 require File.expand_path('../../lib/damage', __FILE__)
+require File.expand_path('../../lib/damage/fake_fix_server', __FILE__)
 Dir["./spec/support/**/*.rb"].sort.each {|f| require f}
 
 RSpec.configure do |config|
