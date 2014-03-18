@@ -69,7 +69,6 @@ module Damage
       while buff = full_read_partial(socket)
         data << buff
       end
-      info "RcvdChunk: #{data.gsub("\01", ", ")}"
       responses = ResponseExtractor.new(@schema, data).responses
       responses.each do |response|
         persistence.persist_rcvd(response)
