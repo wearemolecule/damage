@@ -89,7 +89,7 @@ module Damage
       info "#{message_type} Received: #{response.message_hash}"
       case message_type
       when "TestRequest"
-        async.send_heartbeat(response.test_request_i_d)
+        async.send_heartbeat(response.test_req_i_d)
       when "Logon"
         #successful logon - request any missing messages
         self.logged_out = false
