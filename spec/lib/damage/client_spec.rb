@@ -5,8 +5,9 @@ describe Damage::Client do
   let(:host) { '127.0.0.1' }
   let(:port) { 16990 }
   let(:schema_name) { "TTFIX42" }
-  let(:schema) { Damage::Schema.new("schemas/TTFIX42.xml") }
-  let(:options) { {server_ip: host, port: port, schema: schema_name} }
+  let(:schema) { Damage::Schema.new("schemas/#{schema_name}.xml") }
+  let(:base_options) { {server_ip: host, port: port, schema: schema_name} }
+  let(:options) { base_options }
   let(:server) { Damage::FakeFixServer.new(host, port, schema) }
   let(:instance) { klass.new([], options) }
 
@@ -23,6 +24,40 @@ describe Damage::Client do
     server.terminate
   end
 
+  describe '#default_headers' do
+    subject { instance.default_headers }
+    let(:id_options) { { sender_id: sender_id, target_id: target_id } }
+    let(:sender_id) { 1234 }
+    let(:target_id) { 4567 }
+    
+    it { should be_a Hash }
+    it { should include 'SenderCompID' }
+    it { should include 'TargetCompID' }
+    it { should include 'MsgSeqNum' => server.received_messages.count + 1 }
+
+    context 'include the sender and target ids' do
+      let(:options) { id_options.merge(base_options) }
+      it { should include 'SenderCompID' => sender_id }
+      it { should include 'TargetCompID' => target_id }
+    end
+
+    context 'when supplied with additional headers, includes them' do
+      let(:schema_name) { "FIX44" }
+      let(:options) { id_options.merge(additional_headers).merge(base_options) }
+      let(:additional_headers) do
+        {
+          headers: {
+            'SenderSubID' => 123,
+            'Username' => 'foo',
+            'Password' => 'bar'
+          }
+        }
+      end
+      it { should include 'SenderSubID' }
+      it { should include 'Username' }
+      it { should include 'Password' }
+    end
+  end
 
   describe '#new' do
     it "should send logon message" do

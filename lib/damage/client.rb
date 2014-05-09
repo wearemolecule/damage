@@ -17,7 +17,7 @@ module Damage
         'SenderCompID' => options[:sender_id],
         'TargetCompID' => options[:target_id],
         'MsgSeqNum'    => @msg_seq_num
-      }
+      }.merge(options[:headers] || {})
     end
 
     def initialize(listeners, options={})
