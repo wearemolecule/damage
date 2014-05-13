@@ -58,6 +58,11 @@ describe Damage::Schema do
         let(:strict) { false }
         it { should eq nil }
       end
+
+      context "and strict is nil" do
+        let(:strict) { nil }
+        it { should eq nil }
+      end
     end
   end
 
@@ -111,5 +116,85 @@ describe Damage::Schema do
       let(:msg_name) { "Bizarro" }
       it { expect{subject}.to raise_error(Damage::UnknownMessageTypeError) }
     end
+  end
+
+  describe '#header_fields' do
+    subject { instance.header_fields }
+
+    it { should be_an Nokogiri::XML::NodeSet }
+    it { should have(27).items }
+  end
+
+  describe '#required_header_fields' do
+    subject { instance.required_header_fields }
+
+    it { should be_an Nokogiri::XML::NodeSet }
+    it { should have(7).items }
+  end
+
+  describe '#header_field_names' do
+    subject { instance.header_field_names }
+
+    it { should be_an Array }
+    it { should have(27).items }
+    # it { should include 'MaxMessageSize' }
+  end
+
+  describe '#required_header_field_names' do
+    subject { instance.required_header_field_names }
+
+    it { should be_an Array }
+    it { should have(7).items }
+    it { should include 'BeginString' }
+    it { should include 'BodyLength' }
+    it { should include 'MsgType' }
+    it { should include 'SenderCompID' }
+    it { should include 'TargetCompID' }
+    it { should include 'MsgSeqNum' }
+    it { should include 'SendingTime' }
+  end
+
+  describe '#fields_for_message' do
+    let(:msg_name) { 'Logon' }
+
+    subject { instance.fields_for_message(msg_name) }
+
+    it { should be_an Nokogiri::XML::NodeSet }
+    it { should have(6).items }
+  end
+
+  describe '#required_fields_for_message' do
+    let(:msg_name) { 'Logon' }
+
+    subject { instance.required_fields_for_message(msg_name) }
+
+    it { should be_an Nokogiri::XML::NodeSet }
+    it { should have(2).items }
+  end
+
+  describe '#field_names_for_message' do
+    let(:msg_name) { 'Logon' }
+
+    subject { instance.field_names_for_message(msg_name) }
+
+    it { should be_an Array }
+    it { should have(6).items }
+    it { should include 'EncryptMethod' }
+    it { should include 'HeartBtInt' }
+    it { should include 'RawDataLength' }
+    it { should include 'RawData' }
+    it { should include 'ResetSeqNumFlag' }
+    it { should include 'MaxMessageSize' }
+  end
+
+  describe '#required_field_names_for_message' do
+    let(:msg_name) { 'Logon' }
+
+    subject { instance.required_field_names_for_message(msg_name) }
+
+    it { should be_an Array }
+    it { should have(2).items }
+    it { should include 'EncryptMethod' }
+    it { should include 'HeartBtInt' }
   end
 end

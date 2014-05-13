@@ -3,13 +3,15 @@ require 'spec_helper'
 describe Damage::Message do
   let(:klass) { self.described_class }
   let(:schema) { double("schema") }
-  let(:msg_to_type) { {"Heartbeat" => "0"} }
+  let(:msg_to_type) { {message_type => "0"} }
   let(:name_to_num) { {"SendingTime" => "10", "BooleanField" => "11", "StringField" => "12", "UtcField" => "13"} }
   let(:num_to_type) { {"10" => "UTCTIMESTAMP", "11" => "BOOLEAN", "12" => "STRING", "13" => "UTCTIMESTAMP"} }
   let(:headers) { {} }
   let(:properties) { {} }
   let(:current_time) { Time.utc(2013,1,1,0,0,0) }
-  let(:instance) { klass.new(schema, "Heartbeat", headers, properties) }
+  let(:message_type) { 'Heartbeat' }
+  let(:instance) { klass.new(schema, message_type, headers, properties) }
+
   before do
     schema.stub(:msg_type) { |type| msg_to_type[type] }
     schema.stub(:field_number) { |name| name_to_num[name] }
@@ -36,9 +38,55 @@ describe Damage::Message do
     end
   end
 
+  describe '#all_have_values?' do
+    subject { instance.all_have_values?(hash, keys) }
+
+    let(:key) { 'SomeField' }
+    let(:keys) { [key] }
+    
+    context 'when the field is not included' do
+      let(:hash) { { 'SomeOtherField' => 1 } }
+      it { should be_false }
+    end
+    
+    context 'when the field is included' do
+      context 'but the value is empty' do
+        let(:hash) { { key => nil } }
+        it { should be_false }
+      end
+      
+      context 'but the value is included' do
+        let(:hash) { { key => 1 } }
+        it { should be_true }
+      end
+    end
+  end
+
+  describe '#headers_are_valid?' do
+    subject { instance.headers_are_valid? }
+    before { schema.should_receive(:required_header_field_names).and_return([]) }
+    it { should be_true }
+  end
+
+  describe '#properties_are_valid?' do
+    subject { instance.properties_are_valid? }
+    before { schema.should_receive(:required_field_names_for_message).with(message_type).and_return([]) }
+    it { should be_true }
+  end
+
+  describe '#valid?' do
+    subject { instance.valid? }
+    before do
+      instance.should_receive(:headers_are_valid?).and_return(true)
+      instance.should_receive(:properties_are_valid?).and_return(true)
+    end
+    it { should be_true }
+  end
+
   describe '#fixify' do
     let(:hash) { properties }
-    subject { instance.fixify(hash) }
+    let(:action!) { instance.fixify(hash) }
+    subject { action! }
 
     context "with nothing" do
       it { should eq [] }
@@ -67,6 +115,20 @@ describe Damage::Message do
     context "mix" do
       let(:properties) { {"UtcField" => current_time, "StringField" => "Hello", "BooleanField" => true} }
       it { should eq ["13=20130101-00:00:00.000", "12=Hello", "11=Y"] }
+    end
+
+    context "with an invalid field" do
+      let(:properties) { {'Geschwindigkeitsbegrenzung' => 60} }
+
+      context "with strict enabled (default)" do
+        before { instance.schema.should_receive(:field_number).with(properties.keys.first, true).and_raise(Damage::UnknownFieldNameError) }
+        specify{ expect{ action! }.to raise_error }
+      end
+
+      context "with strict disabled" do
+        before { instance.strict = false }
+        it { should eq [] }
+      end
     end
   end
 

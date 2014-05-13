@@ -1,13 +1,14 @@
 require 'spec_helper'
 
 describe Damage::FakeFixServer do
-  let(:klass) { self.described_class }
-
-  let(:server) { klass.new(host, port, schema) }
-  let(:host)   { '127.0.0.1' }
-  let(:port)   { 16991 }
-  let(:schema) { Damage::Schema.new("schemas/#{schema_name}.xml") }
-  let(:client) { Damage::Client.new([], server_ip: host, port: port, schema: schema_name) }
+  let(:klass)               { self.described_class }
+  let(:server)              { klass.new(host, port, schema) }
+  let(:host)                { '127.0.0.1' }
+  let(:port)                { 16991 }
+  let(:schema)              { Damage::Schema.new("schemas/#{schema_name}.xml") }
+  let(:client)              { Damage::Client.new([], client_options) }
+  let(:client_options)      { base_client_options }
+  let(:base_client_options) { { server_ip: host, port: port, schema: schema_name } }
   let(:base_headers) do
     {
       'SenderCompID' => 'ABCD',
@@ -65,11 +66,10 @@ describe Damage::FakeFixServer do
         expect{ client }.to change{ server.received_messages.count }.from(0).to(1)
       end
 
+      specify{ test_request.should be_valid }
+
       it "TestRequest message" do
-        # client.wrapped_object.should_receive(:read_message)
-        # expect(client).to receive(:read_message)
         server.broadcast_message(test_request.full_message)
-        # sleep(5)
       end
     end
   end
@@ -81,6 +81,13 @@ describe Damage::FakeFixServer do
   end
 
   describe "using a FIX 4.2 schema" do
+    # NOTE: the use of { strict: false } here (and in the FIX 4.4 examples, below
+    #       are due to the existing convention in the library, which is biased towards
+    #       the TT schema.  I want to minimize disruption at this stage of the game.
+    #       However, one would think that a refactoring is in order and that a single
+    #       vendor's non-standard schema definition should NOT be the default.
+    #       -- @adamstrickland, 20140513
+    let(:client_options) { base_client_options.merge(strict: false) }
     let(:schema_name) { "FIX42" }
     it_should_behave_like "a FIX 4.2 gateway"
   end
@@ -91,6 +98,7 @@ describe Damage::FakeFixServer do
   end
 
   describe "using a FIX 4.4 schema" do
+    let(:client_options) { base_client_options.merge(strict: false) }
     let(:headers) { base_headers }
     let(:test_request) { Damage::Message.new(schema, "TestRequest", headers, 'TestReqID' => 1) }
     let(:schema_name) { "FIX44" }

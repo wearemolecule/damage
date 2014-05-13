@@ -9,7 +9,7 @@ module Damage
 
     attr_accessor :heartbeat_timer, :socket, :listeners, :config,
       :options, :persistence, :schema, :logged_out, :last_remote_heartbeat,
-      :heartbeat_interval
+      :heartbeat_interval, :strict
     attr_reader :test_request_sent
 
     def default_headers
@@ -31,6 +31,7 @@ module Damage
       self.heartbeat_interval = config.heartbeat_int.to_i
       self.heartbeat_timer = every(self.heartbeat_interval) { async.send_heartbeat }
       self.last_remote_heartbeat = Time.now
+      self.strict = options[:strict] || options[:strict].nil?
       @listening = true
 
       setup_listeners(listeners)
@@ -151,11 +152,15 @@ module Damage
         self.send_test_request
       end
     end
+    
+    def strict?
+      @strict
+    end
 
     def send_test_request
       @test_request_sent = Time.now
       params = {"TestReqID" => @test_request_sent}
-      message_str = Message.new(@schema, "TestRequest", default_headers, params).full_message
+      message_str = Message.new(@schema, "TestRequest", default_headers, params, { strict: strict? }).full_message
       _info "Sending TestRequest:"
       send_message(@socket, message_str)
     end
@@ -168,7 +173,7 @@ module Damage
         'ResetSeqNumFlag' => !config.persistent
       }
 
-      message_str = Message.new(@schema, "Logon", default_headers, params).full_message
+      message_str = Message.new(@schema, "Logon", default_headers, params, { strict: strict? }).full_message
       _info "Sending Logon:"
       send_message(@socket, message_str)
     end
@@ -177,7 +182,7 @@ module Damage
       params = {
         'ForceLogout' => "0"
       }
-      message_str = Message.new(@schema, "Logout", default_headers, params).full_message
+      message_str = Message.new(@schema, "Logout", default_headers, params, { strict: strict? }).full_message
       _info "Sending Logout:"
       send_message(@socket, message_str)
     end
@@ -188,7 +193,7 @@ module Damage
           "BeginSeqNo" => start,
           "EndSeqNo" => finish
         }
-        message_str = Message.new(@schema, "ResendRequest", default_headers, params).full_message
+        message_str = Message.new(@schema, "ResendRequest", default_headers, params, { strict: strict? }).full_message
         _info "Requesting messages #{start} through #{finish}"
         send_message(@socket, message_str)
       end
@@ -200,7 +205,7 @@ module Damage
 
     def resend_requests(request)
       messages_to_resend = persistence.messages_to_resend(request.begin_seq_no, request.end_seq_no)
-      messages = MessageResendProcessor.new(messages_to_resend, default_headers, schema).reduced_messages
+      messages = MessageResendProcessor.new(messages_to_resend, default_headers, schema, { strict: strict? }).reduced_messages
       messages.each do |message|
         send_message(@socket, message.full_message, true)
       end
@@ -212,7 +217,7 @@ module Damage
                else
                  {'TestReqID' => request_id}
                end
-      message_str = Message.new(@schema, "Heartbeat", default_headers, params).full_message
+      message_str = Message.new(@schema, "Heartbeat", default_headers, params, { strict: strict? }).full_message
       _info "Sending Heartbeat"
       send_message(@socket, message_str)
 
