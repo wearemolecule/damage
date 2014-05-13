@@ -8,7 +8,7 @@ describe Damage::FakeFixServer do
   let(:schema)              { Damage::Schema.new("schemas/#{schema_name}.xml") }
   let(:client)              { Damage::Client.new([], client_options) }
   let(:client_options)      { base_client_options }
-  let(:base_client_options) { { server_ip: host, port: port, schema: schema_name } }
+  let(:base_client_options) { { server_ip: host, port: port, schema_name: schema_name } }
   let(:base_headers) do
     {
       'SenderCompID' => 'ABCD',

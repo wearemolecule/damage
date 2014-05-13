@@ -23,7 +23,8 @@ module Damage
     def initialize(listeners, options={})
       self.config = Damage.configuration
       self.options = options
-      self.schema = Schema.new("schemas/#{options[:schema] || "TTFIX42"}.xml")
+      # self.schema = Schema.new("schemas/#{options[:schema] || "TTFIX42"}.xml")
+      self.schema = options[:schema] || Schema.new("schemas/#{options[:schema_name] || 'TTFIX42'}.xml")
       extra_persistence_options = options[:extra_persistence_options] || {}
       self.persistence = config.persistence_class.new(config.persistence_options.merge(extra_persistence_options))
       self.socket = TCPSocket.new(options[:server_ip], options[:port])

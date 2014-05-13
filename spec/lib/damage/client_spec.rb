@@ -6,7 +6,7 @@ describe Damage::Client do
   let(:port) { 16990 }
   let(:schema_name) { "TTFIX42" }
   let(:schema) { Damage::Schema.new("schemas/#{schema_name}.xml") }
-  let(:base_options) { {server_ip: host, port: port, schema: schema_name} }
+  let(:base_options) { {server_ip: host, port: port, schema_name: schema_name} }
   let(:options) { base_options }
   let(:server) { Damage::FakeFixServer.new(host, port, schema) }
   let(:instance) { klass.new([], options) }

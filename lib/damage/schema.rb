@@ -1,10 +1,17 @@
+require 'nokogiri'
+
 module Damage
   class Schema
-    def initialize(schema_path)
-      schema = File.dirname(__FILE__) + "/" + schema_path
-      raise StandardError, "cannot find schema file" if !File.exists?(schema)
+    def initialize(schema_path, options={})
+      path = if options[:relative] || options[:relative].nil?
+               File.join(File.dirname(__FILE__), schema_path)
+             else
+               schema_path
+             end
 
-      @document = Nokogiri::XML.parse(File.open(schema))
+      raise StandardError, "cannot find schema file" if !File.exists?(path)
+
+      @document = ::Nokogiri::XML.parse(File.open(path))
     end
 
     def fields
