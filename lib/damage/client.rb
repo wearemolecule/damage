@@ -47,7 +47,7 @@ module Damage
     end
 
     def send_message(socket, message, resend = false)
-      info("Wrote: #{message.gsub("\01", ", ")}")
+      _info("Wrote: #{message.gsub("\01", ", ")}")
       socket.write(message)
 
       if !resend
@@ -76,7 +76,7 @@ module Damage
       end
 
     rescue IOError, Errno::EBADF, Errno::ECONNRESET
-      info "Connection Closed"
+      _info "Connection Closed"
       raise FixSocketClosedError, "socket was closed on us"
     rescue Errno::ETIMEDOUT
       #no biggie, keep listening
@@ -86,7 +86,7 @@ module Damage
       self.last_remote_heartbeat = Time.now
 
       message_type = response.message_type
-      info "#{message_type} Received: #{response.message_hash}"
+      _info "#{message_type} Received: #{response.message_hash}"
       case message_type
       when "TestRequest"
         async.send_heartbeat(response.test_req_i_d)
@@ -104,16 +104,23 @@ module Damage
       else
         if listeners.has_key?(message_type)
           begin
-            processor = listeners[message_type].new
-            processor.process(response, options)
+            processor_class = listeners[message_type]
+            _info "Found processor #{processor_class.to_s} for message of type #{message_type}"
+            processor = processor_class.new
+            raise NotImplementedError, "Listener #{processor_class.to_s} (for message type #{message_type}) must implement #handle_message" unless processor.respond_to?(:handle_message)
+            _info "Handling message..."
+            processor.handle_message(response, options)
+            _info "Handling message complete"
           rescue StandardError => e
-            info e
-            info e.backtrace
+            _info e
+            _info e.backtrace
           end
+        else
+          _info "No processor found for message of type #{message_type}"
         end
       end
     rescue UnknownMessageTypeError
-      info "Received unknown message #{response.message_hash}"
+      _info "Received unknown message #{response.message_hash}"
     end
 
     def setup_listeners(listener_classes)
@@ -149,7 +156,7 @@ module Damage
       @test_request_sent = Time.now
       params = {"TestReqID" => @test_request_sent}
       message_str = Message.new(@schema, "TestRequest", default_headers, params).full_message
-      info "Sending TestRequest:"
+      _info "Sending TestRequest:"
       send_message(@socket, message_str)
     end
 
@@ -162,7 +169,7 @@ module Damage
       }
 
       message_str = Message.new(@schema, "Logon", default_headers, params).full_message
-      info "Sending Logon:"
+      _info "Sending Logon:"
       send_message(@socket, message_str)
     end
 
@@ -171,7 +178,7 @@ module Damage
         'ForceLogout' => "0"
       }
       message_str = Message.new(@schema, "Logout", default_headers, params).full_message
-      info "Sending Logout:"
+      _info "Sending Logout:"
       send_message(@socket, message_str)
     end
 
@@ -182,7 +189,7 @@ module Damage
           "EndSeqNo" => finish
         }
         message_str = Message.new(@schema, "ResendRequest", default_headers, params).full_message
-        info "Requesting messages #{start} through #{finish}"
+        _info "Requesting messages #{start} through #{finish}"
         send_message(@socket, message_str)
       end
     end
@@ -206,7 +213,7 @@ module Damage
                  {'TestReqID' => request_id}
                end
       message_str = Message.new(@schema, "Heartbeat", default_headers, params).full_message
-      info "Sending Heartbeat"
+      _info "Sending Heartbeat"
       send_message(@socket, message_str)
 
       check_if_remote_alive
@@ -219,12 +226,17 @@ module Damage
     end
 
     def shut_down
-      info "Shutting down..."
+      _info "Shutting down..."
     ensure
       @listening = false
       @heartbeat_timer.try(:cancel)
       @socket.try(:close)
     end
-  end
+    
+    private
 
+    def _info(message)
+      puts message
+    end
+  end
 end

@@ -33,7 +33,10 @@ describe Damage::Schema do
 
   describe '#field_number' do
     let(:name) { "BeginString" }
-    subject { instance.field_number(name) }
+    let(:strict) { true }
+
+    let(:action!) { instance.field_number(name, strict) }
+    subject { action! }
 
     context "name is known" do
       it { should eq "8" }
@@ -42,6 +45,19 @@ describe Damage::Schema do
     context "unknown name" do
       let(:name) { "Unknown542342" }
       it { should eq "542342" }
+    end
+
+    context "name can't be found" do
+      let(:name) { "XXXKKLJIINNLLLKJHI" }
+      context "and strict is enabled" do
+        subject { nil }
+        specify { expect{ action! }.to raise_error }
+      end
+
+      context "and strict is disabled" do
+        let(:strict) { false }
+        it { should eq nil }
+      end
     end
   end
 

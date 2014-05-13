@@ -17,13 +17,20 @@ module Damage
       field.attribute('name').value
     end
 
-    def field_number(name)
+    def field_number(name, strict=true)
       if match = name.match(/Unknown(\d*)/)
         match[1]
       else
         field = fields.xpath("field[@name='#{name}']")[0]
-        raise UnknownFieldNameError, "couldn't find #{name}" unless field
-        field.attribute('number').value
+        if field
+          field.attribute('number').value
+        else
+          if strict
+            raise UnknownFieldNameError, "couldn't find #{name}"
+          else
+            nil
+          end
+        end
       end
     end
 

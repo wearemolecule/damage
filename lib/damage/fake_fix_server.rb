@@ -36,11 +36,16 @@ class Damage::FakeFixServer
   end
 
   def handle_incoming(socket, data)
-    # response = Damage::Response.new(schema, data)
     @received_messages << data
   end
 
   def shut_down
     @server.close if @server
+  end
+
+  private
+
+  def _log(message)
+    puts message
   end
 end
