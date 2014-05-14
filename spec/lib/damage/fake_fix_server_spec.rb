@@ -6,7 +6,7 @@ describe Damage::FakeFixServer do
   let(:host)                { '127.0.0.1' }
   let(:port)                { 16991 }
   let(:schema)              { Damage::Schema.new("schemas/#{schema_name}.xml") }
-  let(:client)              { Damage::Client.new([], client_options) }
+  let(:client)              { Damage::Client.new(vendor, [], client_options) }
   let(:client_options)      { base_client_options }
   let(:base_client_options) { { server_ip: host, port: port, schema_name: schema_name } }
   let(:base_headers) do
@@ -81,6 +81,7 @@ describe Damage::FakeFixServer do
   end
 
   describe "using a FIX 4.2 schema" do
+    let(:vendor) { :trading_tech }
     # NOTE: the use of { strict: false } here (and in the FIX 4.4 examples, below
     #       are due to the existing convention in the library, which is biased towards
     #       the TT schema.  I want to minimize disruption at this stage of the game.
@@ -93,11 +94,13 @@ describe Damage::FakeFixServer do
   end
 
   describe "using a TT-customized FIX 4.2 schema" do
+    let(:vendor) { :trading_tech }
     let(:schema_name) { "TTFIX42" }
     it_should_behave_like "a FIX 4.2 gateway"
   end
 
   describe "using a FIX 4.4 schema" do
+    let(:vendor) { :ice }
     let(:client_options) { base_client_options.merge(strict: false) }
     let(:headers) { base_headers }
     let(:test_request) { Damage::Message.new(schema, "TestRequest", headers, 'TestReqID' => 1) }

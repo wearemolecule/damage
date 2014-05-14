@@ -9,7 +9,7 @@ describe Damage::Client do
   let(:base_options) { {server_ip: host, port: port, schema_name: schema_name} }
   let(:options) { base_options }
   let(:server) { Damage::FakeFixServer.new(host, port, schema) }
-  let(:instance) { klass.new([], options) }
+  let(:instance) { klass.new(:trading_tech, [], options) }
 
   subject { instance }
 

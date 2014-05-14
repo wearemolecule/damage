@@ -12,6 +12,8 @@ require 'nokogiri'
 require 'tzinfo'
 
 require "damage/client"
+require "damage/client_base"
+require "damage/vendor"
 require "damage/message"
 require "damage/message_listener"
 require "damage/message_resend_processor"
