@@ -15,12 +15,12 @@ class DamageDotThor < Thor
   DEFAULT_DATA_FILE = "#{DEFAULT_DATA_DIR}/damage.dat"
   DEFAULT_SCHEMA = "schemas/FIX42.xml"
 
+  class_option :host, type: :string, default: DEFAULT_HOST, aliases: '-h'
+  class_option :port, type: :numeric, default: DEFAULT_PORT, aliases: '-p'
+  class_option :schema, type: :string, default: DEFAULT_SCHEMA, aliases: '-S'
+  class_option :data_directory, type: :string, default: DEFAULT_DATA_DIR, aliases: '-d'
+
   desc "client", "start a fix client"
-  method_option :host, type: :string, default: DEFAULT_HOST, aliases: '-h'
-  method_option :port, type: :numeric, default: DEFAULT_PORT, aliases: '-p'
-  method_option :schema, type: :string, default: DEFAULT_SCHEMA, aliases: '-S'
-  # method_option :database, type: :string, default: DEFAULT_DB_URL, aliases: '-d'
-  method_option :data_directory, type: :string, default: DEFAULT_DATA_DIR, aliases: '-d'
   method_option :reset, type: :boolean, default: false, aliases: '-r'
   method_option :sender_comp_id, type: :string, required: true, aliases: '-s'
   method_option :target_comp_id, type: :string, required: true, aliases: '-t'
@@ -28,10 +28,6 @@ class DamageDotThor < Thor
   method_option :password, type: :string, aliases: '-P'
   method_option :sender_sub_id, type: :string 
   def client
-    schema = _find_and_load_schema(options[:schema])
-
-    _configure(options[:data_directory], options[:reset])
-
     listeners = []
     optional_headers = {}
     optional_headers['SenderSubID'] = options[:sender_sub_id] if options[:sender_sub_id]
@@ -42,36 +38,30 @@ class DamageDotThor < Thor
       target_id: options[:target_comp_id],
       server_ip: options[:host],
       port: options[:port],
-      schema: schema,
       headers: optional_headers
     }
 
-    supervisor = ::Celluloid::SupervisionGroup.run!
-    supervisor.add(Damage::Client, { as: "DamageDotThor-client", args: [ listeners, client_options ]})
-
-    Signal.trap("USR1") do
-      supervisor.actors.each(&:graceful_shutdown!)
-      supervisor.terminate
-    end
-
-    loop do
-      sleep 5 while supervisor.alive?
+    _execute(options) do |supervisor, schema|
+      supervisor.add(Damage::Client, { as: "DamageDotThor-client", args: [ listeners, client_options.merge(schema: schema) ]})
     end
   end
 
   desc "server", "start a fake fix server"
-  method_option :host, type: :string, default: DEFAULT_HOST, aliases: '-h'
-  method_option :port, type: :numeric, default: DEFAULT_PORT, aliases: '-p'
-  method_option :schema, type: :string, default: DEFAULT_SCHEMA, aliases: '-S'
-  method_option :data_directory, type: :string, default: DEFAULT_DATA_DIR, aliases: '-d'
   def server
+    _execute(options) do |supervisor, schema|
+      supervisor.add(Damage::FakeFixServer, { as: "DamageDotThor-server", args: [ options[:host], options[:port], schema ] })
+    end
+  end
+
+  private
+
+  def _execute(options, &block)
     schema = _find_and_load_schema(options[:schema])
-    # Damage::FakeFixServer.new(options[:host], options[:port], schema)
-
     _configure(options[:data_directory], options[:reset])
-
     supervisor = ::Celluloid::SupervisionGroup.run!
-    supervisor.add(Damage::FakeFixServer, { as: "DamageDotThor-server", args: [ options[:host], options[:port], schema ] })
+
+    block.call(supervisor, schema)
+    # supervisor.add(Damage::FakeFixServer, { as: "DamageDotThor-server", args: [ options[:host], options[:port], schema ] })
 
     Signal.trap("USR1") do
       supervisor.actors.each(&:graceful_shutdown!)
@@ -82,8 +72,6 @@ class DamageDotThor < Thor
       sleep 5 while supervisor.alive?
     end
   end
-
-  private
 
   def _configure(file_dir, reset=true)
     Damage.configure do |config|
