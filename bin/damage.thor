@@ -21,9 +21,10 @@ class DamageDotThor < Thor
   class_option :data_directory, type: :string, default: DEFAULT_DATA_DIR, aliases: '-d'
 
   desc "client", "start a fix client"
-  method_option :reset, type: :boolean, default: false, aliases: '-r'
+  method_option :vendor, type: :string, default: "nothing", aliases: '-v'
   method_option :sender_comp_id, type: :string, required: true, aliases: '-s'
   method_option :target_comp_id, type: :string, required: true, aliases: '-t'
+  method_option :reset, type: :boolean, default: false, aliases: '-r'
   method_option :username, type: :string, aliases: '-u'
   method_option :password, type: :string, aliases: '-P'
   method_option :sender_sub_id, type: :string 
@@ -42,7 +43,7 @@ class DamageDotThor < Thor
     }
 
     _execute(options) do |supervisor, schema|
-      supervisor.add(Damage::Client, { as: "DamageDotThor-client", args: [ listeners, client_options.merge(schema: schema) ]})
+      supervisor.add(Damage::Client, { as: "DamageDotThor-client", args: [ options[:vendor], listeners, client_options.merge(schema: schema) ]})
     end
   end
 

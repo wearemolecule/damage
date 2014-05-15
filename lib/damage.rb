@@ -11,8 +11,8 @@ require 'celluloid/io'
 require 'nokogiri'
 require 'tzinfo'
 
+require "damage/client/base"
 require "damage/client"
-require "damage/client_base"
 require "damage/vendor"
 require "damage/message"
 require "damage/message_listener"

@@ -2,169 +2,51 @@ require 'spec_helper'
 
 describe Damage::Client do
   let(:klass) { self.described_class }
-  let(:host) { '127.0.0.1' }
-  let(:port) { 16990 }
-  let(:schema_name) { "TTFIX42" }
-  let(:schema) { Damage::Schema.new("schemas/#{schema_name}.xml") }
-  let(:base_options) { {server_ip: host, port: port, schema_name: schema_name} }
-  let(:options) { base_options }
-  let(:server) { Damage::FakeFixServer.new(host, port, schema) }
-  let(:instance) { klass.new(:trading_tech, [], options) }
+  let(:listeners) { [] }
+  # let(:options) { { server_ip: "127.0.0.1", port: 767676, schema_name: "FIX44", autostart: false } }
+  let(:options) { { server_ip: "www.google.com", port: 80, schema_name: "FIX44", autostart: false } }
+  let(:vendor) { :trading_tech }
+  let(:initialize!) { klass.new(vendor, listeners, options) }
 
-  subject { instance }
+  describe :class do
+    # normally I wouldn't test this, but the module that the class receives most of
+    # it's functionality from, Damage::Client::Base, also has #initialize defined,
+    # with an arity of 2, so just being specific about that here
+    specify { klass.instance_method(:initialize).arity.should eq -3 }
 
-  before do
-    Celluloid.logger = nil
-    server
+    describe '::new' do
+      subject { initialize! }
 
-    instance
-  end
-
-  after do
-    server.terminate
-  end
-
-  describe '#default_headers' do
-    subject { instance.default_headers }
-    let(:id_options) { { sender_id: sender_id, target_id: target_id } }
-    let(:sender_id) { 1234 }
-    let(:target_id) { 4567 }
-    
-    it { should be_a Hash }
-    it { should include 'SenderCompID' }
-    it { should include 'TargetCompID' }
-    it { should include 'MsgSeqNum' => server.received_messages.count + 1 }
-
-    context 'include the sender and target ids' do
-      let(:options) { id_options.merge(base_options) }
-      it { should include 'SenderCompID' => sender_id }
-      it { should include 'TargetCompID' => target_id }
-    end
-
-    context 'when supplied with additional headers, includes them' do
-      let(:schema_name) { "FIX44" }
-      let(:options) { id_options.merge(additional_headers).merge(base_options) }
-      let(:additional_headers) do
-        {
-          headers: {
-            'SenderSubID' => 123,
-            'Username' => 'foo',
-            'Password' => 'bar'
-          }
-        }
+      context 'sets the vendor' do
+        its(:vendor) { should eq vendor }
       end
-      it { should include 'SenderSubID' }
-      it { should include 'Username' }
-      it { should include 'Password' }
+
+      context 'attempts to include the customization module for the supplied vendor' do
+        let(:vendor) { :ice }
+        it { should be_kind_of Damage::Vendor::IceClient }
+      end
+
+      context 'when the customization cannot be found' do
+        let(:vendor) { :foobar }
+        it { should_not be_kind_of Damage::Vendor::IceClient }
+        it do
+          class Damage::Vendor::FooBarClient; end
+          should_not be_kind_of Damage::Vendor::FooBarClient
+        end
+      end
+
+      context 'bubbles up #initialize' do
+        it { should be_a Damage::Client::Base }
+      end
     end
   end
 
-  describe '#new' do
-    it "should send logon message" do
-      server.received_messages.count.should eq 1
-      server.received_messages.first.should match(/35=A/)
-    end
-  end
+  describe :instance do
+    let(:instance) { initialize! }
 
-  describe '#send_message' do
-    before do
-      instance.send_message(instance.socket, "Test")
-    end
+    subject { instance }
 
-    it "should send any arbitrary message" do
-      server.received_messages.count.should eq 2
-      server.received_messages.last.should eq  "Test"
-    end
-  end
-
-  describe '#send_heartbeat' do
-
-    subject { instance.send_heartbeat }
-  end
-
-  describe '#time_since_test_request' do
-    let(:test_request_sent) { Time.now }
-
-    subject { instance.time_since_test_request }
-
-    before do
-      instance.instance_variable_set :@test_request_sent, test_request_sent
-    end
-
-    it { should eq 0 }
-
-    context '60 seconds ago' do
-      let(:test_request_sent) { Time.now - 60.seconds }
-      it { should eq 60 }
-    end
-
-    context 'nil' do
-      let(:test_request_sent) { nil }
-      it { should eq 0 }
-    end
-  end
-
-  describe '#time_since_heartbeat' do
-    let(:last_remote_heartbeat) { Time.now }
-
-    subject { instance.time_since_heartbeat }
-
-    before do
-      instance.instance_variable_set :@last_remote_heartbeat, last_remote_heartbeat
-    end
-
-    it { should eq 0 }
-
-    context '60 seconds ago' do
-      let(:last_remote_heartbeat) { Time.now - 60.seconds }
-      it { should eq 60 }
-    end
-
-    context 'nil' do
-      let(:last_remote_heartbeat) { nil }
-      it { should eq 0 }
-    end
-  end
-
-  describe '#above_loss_tolerance' do
-    let(:heartbeat_interval) { 30 }
-
-    subject { instance.above_loss_tolerance(time_since) }
-
-    before do
-      instance.heartbeat_interval = heartbeat_interval
-    end
-
-    context "less than tolerance" do
-      let(:time_since) { 30 }
-
-      it { should be_false }
-    end
-
-    context "greater than tolerance" do
-      let(:time_since) { 60 }
-
-      it { should be_true }
-    end
-  end
-
-  describe '#check_if_remote_alive' do
-    let(:test_request_sent) { nil }
-    let(:last_remote_heartbeat) { Time.now }
-    before do
-      instance.heartbeat_interval = 30
-      instance.instance_variable_set :@test_request_sent, test_request_sent
-      instance.instance_variable_set :@last_remote_heartbeat, last_remote_heartbeat
-    end
-
-    subject { instance.check_if_remote_alive }
-
-    it { should be_false }
-
-    context 'with expired heartbeat' do
-      let(:last_remote_heartbeat) { Time.now - 60.seconds }
-
-      it { should be_true }
-    end
+    it { should respond_to :vendor }
+    it { should respond_to :vendor= }
   end
 end

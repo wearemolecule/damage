@@ -1,12 +1,6 @@
-require 'damage/client_base'
-
 module Damage
   class Client
-    include Celluloid::IO
-    include Celluloid::Logger
-    include Damage::ClientBase
-
-    finalizer :shut_down
+    include Damage::Client::Base
 
     attr_accessor :vendor
 
@@ -16,7 +10,7 @@ module Damage
       begin
         self.send(:extend, customization.constantize)
       rescue NameError
-        raise "Unknown vendor '#{vendor}'.  Please implement #{customization}"
+        puts "Unknown vendor '#{vendor}'.  Please implement #{customization}"
       end
 
       super(listeners, options)
