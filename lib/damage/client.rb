@@ -10,7 +10,7 @@ module Damage
       begin
         self.send(:extend, customization.constantize)
       rescue NameError
-        puts "Unknown vendor '#{vendor}'.  Please implement #{customization}"
+        Damage.configuration.logger.warn "Unknown vendor '#{vendor}'.  Please implement #{customization}"
       end
 
       super(listeners, options)

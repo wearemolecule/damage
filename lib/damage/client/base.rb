@@ -255,7 +255,7 @@ module Damage
       private
 
       def _info(message)
-        puts message
+        Damage.configuration.logger.debug message
       end
     end
   end

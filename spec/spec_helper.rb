@@ -20,24 +20,12 @@ RSpec.configure do |config|
   #     --seed 1234
   config.order = 'random'
 
-  # config.around do |ex|
-  #   # Celluloid.actor_system = nil
-  #   Thread.list.each do |thread|
-  #     next if thread == Thread.current
-  #     thread.kill
-  #   end
-  #   ex.run
-  # end
-
-  # config.around actor_system: :global do |ex|
-  #   Celluloid.boot
-  #   ex.run
-  #   Celluloid.shutdown
-  # end
-
-  # config.around actor_system: :within do |ex|
-  #   Celluloid::ActorSystem.new.within do
-  #     ex.run
-  #   end
-  # end
+  unless ENV['VERBOSE']
+    # quiet the log messages for specs
+    Damage.configuration.logger = Class.new(Logger) do
+      def add(*args, &block); end
+    end.new($stdout) 
+    $CELLULOID_DEBUG = false
+    Celluloid.logger = nil
+  end
 end

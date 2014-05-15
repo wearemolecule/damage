@@ -16,7 +16,7 @@ module Damage
           'TransactTime' => last_transact_time
         }
         message_str = Message.new(schema, "TradeCaptureReportRequest", default_headers, params, { strict: strict? }).full_message
-        _info "Requesting trade capture with snapshot and subscription"
+        Damage.configuration.logger.info "Requesting trade capture with snapshot and subscription"
         send_message(socket, message_str)
       end
     end

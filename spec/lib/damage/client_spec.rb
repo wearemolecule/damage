@@ -8,6 +8,12 @@ describe Damage::Client do
   let(:vendor) { :trading_tech }
   let(:initialize!) { klass.new(vendor, listeners, options) }
 
+  around do |ex|
+    Celluloid.boot
+    ex.run
+    Celluloid.shutdown
+  end
+
   describe :class do
     # normally I wouldn't test this, but the module that the class receives most of
     # it's functionality from, Damage::Client::Base, also has #initialize defined,

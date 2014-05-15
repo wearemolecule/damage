@@ -35,7 +35,11 @@ module Damage
   class MessageParseError < StandardError; end
 
   class Configuration
-    attr_accessor :heartbeat_int, :persistent, :persistence_options, :persistence_class
+    attr_accessor :heartbeat_int, 
+                  :persistent,
+                  :persistence_options, 
+                  :persistence_class,
+                  :logger
 
     def initialize
       self.heartbeat_int = 30
@@ -43,6 +47,9 @@ module Damage
       self.persistent = false
       self.persistence_options = {}
       self.persistence_class = Damage::Persistence::NullPersistence
+      self.logger = Logger.new($stdout).tap do |log|
+        log.progname = 'damage'
+      end
     end
   end
 
