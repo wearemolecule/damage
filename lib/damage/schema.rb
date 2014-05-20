@@ -1,10 +1,17 @@
+require 'nokogiri'
+
 module Damage
   class Schema
-    def initialize(schema_path)
-      schema = File.dirname(__FILE__) + "/" + schema_path
-      raise StandardError, "cannot find schema file" if !File.exists?(schema)
+    def initialize(schema_path, options={})
+      path = if options[:relative] || options[:relative].nil?
+               File.join(File.dirname(__FILE__), schema_path)
+             else
+               schema_path
+             end
 
-      @document = Nokogiri::XML.parse(File.open(schema))
+      raise StandardError, "cannot find schema file" if !File.exists?(path)
+
+      @document = ::Nokogiri::XML.parse(File.open(path))
     end
 
     def fields
@@ -17,13 +24,20 @@ module Damage
       field.attribute('name').value
     end
 
-    def field_number(name)
+    def field_number(name, strict=true)
       if match = name.match(/Unknown(\d*)/)
         match[1]
       else
         field = fields.xpath("field[@name='#{name}']")[0]
-        raise UnknownFieldNameError, "couldn't find #{name}" unless field
-        field.attribute('number').value
+        if field
+          field.attribute('number').value
+        else
+          if strict
+            raise UnknownFieldNameError, "couldn't find #{name}"
+          else
+            nil
+          end
+        end
       end
     end
 
@@ -34,13 +48,45 @@ module Damage
     end
 
     def msg_name(msg_type)
-      field = message_lookup 'msgtype', msg_type
-      field.attribute('name').value
+      entity = message_lookup('msgtype', msg_type)
+      entity.attribute('name').value
     end
 
     def msg_type(msg_name)
-      field = message_lookup 'name', msg_name
-      field.attribute('msgtype').value
+      entity = message_lookup('name', msg_name)
+      entity.attribute('msgtype').value
+    end
+    
+    def header_fields
+      @document.xpath('//header/field')
+    end
+    
+    def header_field_names
+      node_names_from_nodeset(header_fields)
+    end
+
+    def required_header_fields
+      required_nodes_in_nodeset(header_fields)
+    end
+
+    def required_header_field_names
+      node_names_from_nodeset(required_header_fields)
+    end
+
+    def fields_for_message(name)
+      message_lookup('name', name).xpath('field')
+    end
+    
+    def field_names_for_message(name)
+      node_names_from_nodeset(fields_for_message(name))
+    end
+
+    def required_fields_for_message(name)
+      required_nodes_in_nodeset(fields_for_message(name))
+    end
+
+    def required_field_names_for_message(name)
+      node_names_from_nodeset(required_fields_for_message(name))
     end
 
     def begin_string
@@ -55,6 +101,23 @@ module Damage
       field = @document.xpath("//messages/message[@#{field}='#{value}']")[0]
       raise UnknownMessageTypeError unless field
       field
+    end
+
+    def required_nodes_in_nodeset(nodeset)
+      nodes = nodeset.select do |node|
+        node.attributes.any? do |attr_name, attr_obj|
+          attr_name == 'required' && attr_obj.value == 'Y'
+        end
+      end
+      Nokogiri::XML::NodeSet.new(@document, nodes)
+    end
+
+    def node_names_from_nodeset(nodeset)
+      nodeset.map do |elem|
+        elem.attributes.find do |attr_name, attr_obj|
+          attr_obj.name == 'name'
+        end.last.value
+      end
     end
   end
 end

@@ -1,11 +1,12 @@
 module Damage
   class MessageResendProcessor
-    attr_accessor :messages, :headers, :schema
+    attr_accessor :messages, :headers, :schema, :options
 
-    def initialize(messages, headers, schema)
+    def initialize(messages, headers, schema, options={})
       self.messages = messages
       self.headers = headers.except('MsgSeqNum')
       self.schema = schema
+      self.options = options
     end
 
     def message_type(params)
@@ -27,10 +28,10 @@ module Damage
           new_params["GapFillFlag"] = true
           new_params["NewSeqNo"] = seq_num + 1
           new_params["PossDupFlag"] = true
-          Message.new(schema, "SequenceReset", headers, new_params)
+          Message.new(schema, "SequenceReset", headers, new_params, options)
         else
           params["PossDupFlag"] = true
-          Message.new(schema, type, headers, params)
+          Message.new(schema, type, headers, params, options)
         end
       end
     end

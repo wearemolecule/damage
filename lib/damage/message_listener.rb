@@ -14,8 +14,7 @@ module Damage
       extend ClassMethods
     end
 
-    def process(*)
-      raise NotImplementedError, "listener must implement process"
-    end
+    # def handle_message(*)
+    # end
   end
 end

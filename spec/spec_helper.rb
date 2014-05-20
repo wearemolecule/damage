@@ -1,8 +1,13 @@
 require 'pry'
 require 'timecop'
+require 'celluloid/test'
+require 'celluloid/rspec'
+# require 'celluloid/probe'
 require File.expand_path('../../lib/damage', __FILE__)
 require File.expand_path('../../lib/damage/fake_fix_server', __FILE__)
 Dir["./spec/support/**/*.rb"].sort.each {|f| require f}
+
+Celluloid.shutdown_timeout = 1
 
 RSpec.configure do |config|
   config.treat_symbols_as_metadata_keys_with_true_values = true
@@ -14,4 +19,13 @@ RSpec.configure do |config|
   # the seed, which is printed after each run.
   #     --seed 1234
   config.order = 'random'
+
+  unless ENV['VERBOSE']
+    # quiet the log messages for specs
+    Damage.configuration.logger = Class.new(Logger) do
+      def add(*args, &block); end
+    end.new($stdout) 
+    $CELLULOID_DEBUG = false
+    Celluloid.logger = nil
+  end
 end

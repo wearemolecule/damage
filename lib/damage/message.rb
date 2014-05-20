@@ -1,12 +1,19 @@
 module Damage
   class Message
-    attr_accessor :schema, :type, :properties
+    attr_accessor :schema, :type, :properties, :strict, :name
 
-    def initialize(schema, type, headers, properties)
+    def initialize(schema, name, headers, properties, options={})
       @schema = schema
-      @type = schema.msg_type(type)
+      @name = name
+      @type = schema.msg_type(name)
       @headers = headers
       @properties = properties
+      @options = options
+      @strict = options[:strict] || options[:strict].nil?
+    end
+
+    def strict?
+      @strict
     end
 
     def headers
@@ -15,20 +22,42 @@ module Damage
       })
     end
 
-    def fixify(hash)
-      hash.map { |k,v|
-        num = @schema.field_number(k)
-        type = @schema.field_type(num)
-        if type == "BOOLEAN"
-          val = v ? "Y" : "N"
-        elsif type == "UTCTIMESTAMP"
-          val = v.strftime('%Y%m%d-%H:%M:%S.%3N')
-        else
-          val = v
-        end
+    # NOTE: perhaps should use ActiveRecord Validations?
+    def valid?
+      headers_are_valid? && properties_are_valid?
+    end
 
+    def headers_are_valid?
+      # don't need to check for 'BeginString', 'BodyLength', or 'MsgType' as they're added upon generation of the FIX message itself
+      all_have_values?(headers, schema.required_header_field_names - ['BeginString', 'BodyLength', 'MsgType'])
+    end
+
+    def properties_are_valid?
+      all_have_values?(properties, schema.required_field_names_for_message(name))
+    end
+
+    def all_have_values?(hash, keys)
+      keys.all? do |key|
+        hash.has_key?(key) && !hash[key].nil?
+      end
+    end
+
+    def fixify(hash)
+      hash.map do |key, val|
+        [@schema.field_number(key, strict?), val]
+      end.reject do |num, val|
+        num.nil?
+      end.map do |num, v|
+        val = case @schema.field_type(num)
+              when "BOOLEAN"
+                v ? "Y" : "N"
+              when "UTCTIMESTAMP"
+                v.strftime('%Y%m%d-%H:%M:%S.%3N')
+              else
+                v
+              end
         "#{num}=#{val}"
-      }
+      end
     end
 
     def body
