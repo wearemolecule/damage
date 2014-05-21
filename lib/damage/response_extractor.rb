@@ -24,6 +24,7 @@ module Damage
     def read_next_message(buffer)
       return [false, ""] if buffer.length < 2
 
+      # all FIX messages must start with a BeginString tag, which indicates the FIX version
       index = buffer.index("8=")
       return [false, ""] if index.nil?
 
@@ -31,8 +32,13 @@ module Damage
 
       len, header_end = extract_length(buffer)
 
+      # CheckSum-ing...
       index = buffer.index(SOH + "10=", header_end)
+
+      # make sure there is a CheckSum tag
       return [false, buffer[header_end..-1]] if index.nil?
+
+      # validate the length of the message body against the value of the CheckSum tag
       return [false, buffer[header_end..-1]] if len != index - header_end
 
       index = buffer.index(SOH, index + 1)
