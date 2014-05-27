@@ -5,7 +5,6 @@ require 'damage'
 require 'damage/fake_fix_server'
 require 'celluloid'
 require 'highline/import'
-require 'pry'
 
 class DamageDotThor < Thor
   namespace :damage
