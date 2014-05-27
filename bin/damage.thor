@@ -4,6 +4,8 @@ require 'thor'
 require 'damage'
 require 'damage/fake_fix_server'
 require 'celluloid'
+require 'highline/import'
+require 'pry'
 
 class DamageDotThor < Thor
   namespace :damage
@@ -42,35 +44,80 @@ class DamageDotThor < Thor
       headers: optional_headers
     }
 
-    _execute(options) do |supervisor, schema|
-      supervisor.add(Damage::Client, { as: "DamageDotThor-client", args: [ options[:vendor], listeners, client_options.merge(schema: schema) ]})
+    _start_fix_communication(options) do |supervisor, schema|
+      supervisor.add(Damage::Client, { as: :client, args: [ options[:vendor], listeners, client_options.merge(schema: schema) ]})
+    end
+
+    _run_loop do
+      _show_menu options[:schema]
     end
   end
 
   desc "server", "start a fake fix server"
   def server
-    _execute(options) do |supervisor, schema|
-      supervisor.add(Damage::FakeFixServer, { as: "DamageDotThor-server", args: [ options[:host], options[:port], schema ] })
+    _run(options) do |supervisor, schema|
+      supervisor.add(Damage::FakeFixServer, { as: :server, args: [ options[:host], options[:port], schema ] })
     end
   end
 
   private
 
-  def _execute(options, &block)
+  def _client
+    _supervisor.actors.find{ |a| a.name == :client }
+  end
+
+  def _supervisor
+    @supervisor
+  end
+
+  def _show_menu(schema)
+    choose do |menu|
+      menu.index = :letter
+      menu.index_suffix = ') '
+      # menu.layout = :menu_only
+      # menu.shell = true
+      # menu.prompt = color('What would you like to do?', :blue)
+      menu.prompt = 'What would you like to do?'
+      menu.choice(:send, "<%= color('Send a FIX message.', :blue) %>") do |command, details|
+        msg_type = ask("MsgType")
+        fields = []
+        loop do
+          field = ask("Field(s) [e.g. 'FieldName=FieldValue [NextFieldName=NextFieldValue]': ")
+          break if field == ""
+          fields << field
+        end
+        msg_fields = Hash[*fields.map{ |f| f.split(/[\s=]/) }.flatten]
+        _client._send_message(msg_type, msg_fields)
+      end
+      menu.choice(:quit, "<%= color('Quit.', :blue) %>") do
+        # Process.kill("USR1")
+        exit
+      end
+    end
+  end
+  
+  def _run_loop
+    loop do
+      yield if block_given?
+      sleep 5 while @supervisor.alive?
+    end
+  end
+
+  def _run(options, &block)
+    _start_fix_communication(options, &block)
+  end
+
+  def _start_fix_communication(options, &block)
     schema = _find_and_load_schema(options[:schema])
     _configure(options[:data_directory], options[:reset])
-    supervisor = ::Celluloid::SupervisionGroup.run!
+    @supervisor = ::Celluloid::SupervisionGroup.run!
 
-    block.call(supervisor, schema)
+    block.call(@supervisor, schema)
     # supervisor.add(Damage::FakeFixServer, { as: "DamageDotThor-server", args: [ options[:host], options[:port], schema ] })
 
     Signal.trap("USR1") do
-      supervisor.actors.each(&:graceful_shutdown!)
-      supervisor.terminate
-    end
-
-    loop do
-      sleep 5 while supervisor.alive?
+      @supervisor.actors.each(&:graceful_shutdown!)
+      @supervisor.terminate
     end
   end
 
