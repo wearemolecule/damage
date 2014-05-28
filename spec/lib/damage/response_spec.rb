@@ -78,16 +78,39 @@ describe Damage::Response do
   end
 
   describe '#message_hash' do
-    subject { instance.message_hash }
+    let(:message_hash) { instance.message_hash }
+    subject { message_hash }
 
-    it { should include({"BeginString" => "FIX.4.2"}) }
-    it { should include({"BodySize" => 64}) }
-    it { should include({"MsgType" => "0"}) }
-    it { should include({"SenderID" => "TTDS68BO"}) }
-    it { should include({"TargetID" => "MOLECULEDTS"}) }
-    it { should include({"MsgSeqNum" => 768}) }
-    it { should include({"SendingTime" => message_time}) }
-    it { should include({"Checksum" => "085"}) }
+    context 'when the FIX message is pretty simple, like a Heartbeat' do
+      it { should include({"BeginString" => "FIX.4.2"}) }
+      it { should include({"BodySize" => 64}) }
+      it { should include({"MsgType" => "0"}) }
+      it { should include({"SenderID" => "TTDS68BO"}) }
+      it { should include({"TargetID" => "MOLECULEDTS"}) }
+      it { should include({"MsgSeqNum" => 768}) }
+      it { should include({"SendingTime" => message_time}) }
+      it { should include({"Checksum" => "085"}) }
+    end
+
+    context 'when the FIX message contains repeated groups, like a TradeCaptureReport' do
+      let(:schema_path) { 'schemas/FIX44.xml' }
+      let(:schema) { Damage::Schema.new(schema_path) }
+      let(:message) do
+        "8=FIX.4.4\u00019=527\u000135=AE\u000149=ICE\u000134=5\u000152=20140528-15:09:06.066\u000156=6746\u000157=AGTS\u0001571=338\u0001487=0\u0001856=0\u0001828=0\u0001150=F\u000117=414584964\u000139=2\u0001570=N\u000155=595630\u000148=HNG SMV0014!\u000122=8\u0001461=FXXXXX\u0001207=IFED\u0001916=20141001\u0001917=20141031\u000132=2500.0\u000131=4.5\u00019018=31\u00019022=31\u000175=20140528\u000160=20140528-15:09:06.066\u00019413=0\u0001552=1\u000154=2\u000137=65001292\u000111=414584964\u0001453=8\u0001448=e360power\u0001447=D\u0001452=11\u0001448=October Futures LLC\u0001447=D\u0001452=13\u0001448=6745\u0001447=D\u0001452=56\u0001448=6745\u0001447=D\u0001452=35\u0001448=8745\u0001447=D\u0001452=4\u0001448=M25501 C\u0001447=D\u0001452=51\u0001448=JP Morgan Securities LLC\u0001447=D\u0001452=60\u0001448=W\u0001447=D\u0001452=54\u000110=167"
+      end
+
+      it { should include "MsgType" => "AE" }
+      it { should include "NoPartyIDs" }
+
+      context 'and the group is an Array of Hashes' do
+        subject { message_hash['NoPartyIDs'] }
+        # it { should have(8).items }
+        # it { should include hash_including('PartyRole' => '11') }
+        # it { should include hash_including('PartyID' => 'e360power') }
+        # it { should include hash_including('PartyRole' => '13') }
+        # it { should include hash_including('PartyID' => 'October Futures LLC') }
+      end
+    end
   end
 
   describe '#message_type' do

@@ -26,13 +26,18 @@ module Damage
     end
 
     def message_hash
-      @message_hash ||= Hash[*message_components.map { |comp|
+      @message_hash ||= _message_hash_from_components
+    end
+
+    def _message_hash_from_components
+      fields = message_components.map do |comp|
         key, value = comp.split("=")
         new_key = @schema.field_name(key)
         type = @schema.field_type(key)
         new_value = cast_field_value(type, value)
         [new_key, new_value]
-      }.flatten]
+      end
+      Hash[*fields.flatten]
     end
 
     def message_type

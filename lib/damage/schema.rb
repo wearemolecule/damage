@@ -4,7 +4,7 @@ module Damage
   class Schema
     attr_accessor :file_path
 
-    def initialize(schema_path, options={})
+    def initialize(schema_path, options = {})
       @file_path = if options[:relative] || options[:relative].nil?
                      File.join(File.dirname(__FILE__), schema_path)
                    else
@@ -25,7 +25,7 @@ module Damage
       field.attribute('name').value
     end
 
-    def field_number(name, strict=true)
+    def field_number(name, strict = true)
       if match = name.match(/Unknown(\d*)/)
         match[1]
       else

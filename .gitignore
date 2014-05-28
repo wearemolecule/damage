@@ -18,3 +18,4 @@ tmp
 .ruby-version
 rcvd.dat
 sent.dat
+rcvd.old
