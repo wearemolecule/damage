@@ -66,7 +66,7 @@ module Damage
         socket.write(message)
 
         if !resend
-          response = Response.new(@schema, message)
+          response = Response.new(message, schema: @schema)
           persistence.persist_sent(response)
           @msg_seq_num += 1
         end

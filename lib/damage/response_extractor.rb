@@ -17,7 +17,7 @@ module Damage
         message, buffer = read_next_message(buffer)
         message_available = !!buffer && buffer.length > 0
         next if !message
-        responses << Response.new(schema, message)
+        responses << Response.new(message, schema: schema)
       end
     end
 

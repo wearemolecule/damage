@@ -2,7 +2,9 @@ require 'nokogiri'
 
 module Damage
   class Schema
-    attr_accessor :file_path
+    DEFAULT_SCHEMA = "schemas/FIX42.xml"
+
+    attr_accessor :file_path, :document
 
     def initialize(schema_path, options = {})
       @file_path = if options[:relative] || options[:relative].nil?
@@ -15,8 +17,12 @@ module Damage
       @document = ::Nokogiri::XML.parse(File.open(@file_path))
     end
 
+    def groups
+      @groups ||= document.xpath('//groups')[0]
+    end
+
     def fields
-      @fields ||= @document.xpath('//fields')[0]
+      @fields ||= document.xpath('//fields')[0]
     end
 
     def field_name(number)
@@ -59,7 +65,7 @@ module Damage
     end
     
     def header_fields
-      @document.xpath('//header/field')
+      document.xpath('//header/field')
     end
     
     def header_field_names
@@ -91,17 +97,46 @@ module Damage
     end
 
     def begin_string
-      fix_root = @document.xpath('fix')[0]
+      fix_root = document.xpath('fix')[0]
       major = fix_root.attribute("major").value
       minor = fix_root.attribute("minor").value
       "FIX.#{major}.#{minor}"
     end
 
+    # def message_definition(msg_type_or_code)
+    #   attribute = if msg_type_or_code =~ /[a-z]/  # codes should only be numeric or all caps
+    #                 'name'
+    #               else
+    #                 'msgtype'
+    #               end
+    #   element = message_lookup(attribute, msg_type_or_code)
+    #   definition = FixMessageDefinition.new(element.attribute('name'), element: element)
+    #   _build_definition(definition, element)
+    #   definition
+    # end
+
+    # def _build_definition(definition, element)
+    #   element.xpath('component').each do |e|
+    #     component_def = document.xpath("//components/component[@name='#{e.attribute('name')}']")
+    #     _build_definition(definition, component_def)
+    #   end
+    #   element.xpath('group').each do |e|
+    #     name = e.attribute('name')
+    #     group_def = FixGroupDefinition.new(name, field_number(name))
+    #     _build_definition(group_def, e)
+    #     defintion.groups << group_def
+    #   end
+    #   element.xpath('field').each do |e|
+    #     name = e.attribute('name')
+    #     definition.fields << FixFieldDefinition.new(name, field_number(name))
+    #   end
+    # end
+
     private
     def message_lookup(field, value)
-      field = @document.xpath("//messages/message[@#{field}='#{value}']")[0]
-      raise UnknownMessageTypeError unless field
-      field
+      element = document.xpath("//messages/message[@#{field}='#{value}']")[0]
+      raise UnknownMessageTypeError unless element
+      element
     end
 
     def required_nodes_in_nodeset(nodeset)
