@@ -63,11 +63,11 @@ module Damage
       entity = message_lookup('name', msg_name)
       entity.attribute('msgtype').value
     end
-    
+
     def header_fields
       document.xpath('//header/field')
     end
-    
+
     def header_field_names
       node_names_from_nodeset(header_fields)
     end
@@ -83,7 +83,7 @@ module Damage
     def fields_for_message(name)
       message_lookup('name', name).xpath('field')
     end
-    
+
     def field_names_for_message(name)
       node_names_from_nodeset(fields_for_message(name))
     end
@@ -102,35 +102,6 @@ module Damage
       minor = fix_root.attribute("minor").value
       "FIX.#{major}.#{minor}"
     end
-
-    # def message_definition(msg_type_or_code)
-    #   attribute = if msg_type_or_code =~ /[a-z]/  # codes should only be numeric or all caps
-    #                 'name'
-    #               else
-    #                 'msgtype'
-    #               end
-    #   element = message_lookup(attribute, msg_type_or_code)
-    #   definition = FixMessageDefinition.new(element.attribute('name'), element: element)
-    #   _build_definition(definition, element)
-    #   definition
-    # end
-
-    # def _build_definition(definition, element)
-    #   element.xpath('component').each do |e|
-    #     component_def = document.xpath("//components/component[@name='#{e.attribute('name')}']")
-    #     _build_definition(definition, component_def)
-    #   end
-    #   element.xpath('group').each do |e|
-    #     name = e.attribute('name')
-    #     group_def = FixGroupDefinition.new(name, field_number(name))
-    #     _build_definition(group_def, e)
-    #     defintion.groups << group_def
-    #   end
-    #   element.xpath('field').each do |e|
-    #     name = e.attribute('name')
-    #     definition.fields << FixFieldDefinition.new(name, field_number(name))
-    #   end
-    # end
 
     private
     def message_lookup(field, value)
