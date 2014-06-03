@@ -24,7 +24,7 @@ describe Damage::Client do
       subject { initialize! }
 
       context 'sets the vendor' do
-        its(:vendor) { should eq vendor }
+        it { should be_kind_of Damage::Vendor::TradingTechClient }
       end
 
       context 'attempts to include the customization module for the supplied vendor' do
