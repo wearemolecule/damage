@@ -66,7 +66,7 @@ module Damage
         socket.write(message)
 
         if !resend
-          response = Response.new(@schema, message)
+          response = Response.new(message, schema: @schema)
           persistence.persist_sent(response)
           @msg_seq_num += 1
         end
@@ -172,11 +172,7 @@ module Damage
       end
 
       def send_test_request
-        @test_request_sent = Time.now
-        params = {"TestReqID" => @test_request_sent}
-        message_str = Message.new(@schema, "TestRequest", default_headers, params, { strict: strict? }).full_message
-        _info "Sending TestRequest:"
-        send_message(@socket, message_str)
+        _send_message('TestRequest', { "TestReqID" => Time.now })
       end
 
       def send_logon
@@ -186,19 +182,11 @@ module Damage
           'RawData' => options[:password],
           'ResetSeqNumFlag' => !config.persistent
         }
-
-        message_str = Message.new(@schema, "Logon", default_headers, params, { strict: strict? }).full_message
-        _info "Sending Logon:"
-        send_message(@socket, message_str)
+        _send_message("Logon", params)
       end
 
       def send_logout
-        params = {
-          'ForceLogout' => "0"
-        }
-        message_str = Message.new(@schema, "Logout", default_headers, params, { strict: strict? }).full_message
-        _info "Sending Logout:"
-        send_message(@socket, message_str)
+        _send_message("Logout", { 'ForceLogout' => '0' })
       end
 
       def request_missing_messages
@@ -207,9 +195,8 @@ module Damage
             "BeginSeqNo" => start,
             "EndSeqNo" => finish
           }
-          message_str = Message.new(@schema, "ResendRequest", default_headers, params, { strict: strict? }).full_message
           _info "Requesting messages #{start} through #{finish}"
-          send_message(@socket, message_str)
+          _send_message("ResendRequest", params)
         end
       end
 
@@ -231,10 +218,7 @@ module Damage
                  else
                    {'TestReqID' => request_id}
                  end
-        message_str = Message.new(@schema, "Heartbeat", default_headers, params, { strict: strict? }).full_message
-        _info "Sending Heartbeat"
-        send_message(@socket, message_str)
-
+        _send_message("Heartbeat", params)
         check_if_remote_alive
       end
 
@@ -250,6 +234,12 @@ module Damage
         @listening = false
         @heartbeat_timer.try(:cancel)
         @socket.try(:close)
+      end
+
+      def _send_message(msg_type, msg_params)
+        message_str = Message.new(@schema, msg_type, default_headers, msg_params, { strict: strict? }).full_message
+        _info "Sending #{msg_type}:"
+        send_message(@socket, message_str)
       end
       
       private

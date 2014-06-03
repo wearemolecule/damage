@@ -2,20 +2,27 @@ require 'nokogiri'
 
 module Damage
   class Schema
-    def initialize(schema_path, options={})
-      path = if options[:relative] || options[:relative].nil?
-               File.join(File.dirname(__FILE__), schema_path)
-             else
-               schema_path
-             end
+    DEFAULT_SCHEMA = "schemas/FIX42.xml"
 
-      raise StandardError, "cannot find schema file" if !File.exists?(path)
+    attr_accessor :file_path, :document
 
-      @document = ::Nokogiri::XML.parse(File.open(path))
+    def initialize(schema_path, options = {})
+      @file_path = if options[:relative] || options[:relative].nil?
+                     File.join(File.dirname(__FILE__), schema_path)
+                   else
+                     schema_path
+                   end
+      raise StandardError, "cannot find schema file" if !File.exists?(@file_path)
+
+      @document = ::Nokogiri::XML.parse(File.open(@file_path))
+    end
+
+    def groups
+      @groups ||= document.xpath('//groups')[0]
     end
 
     def fields
-      @fields ||= @document.xpath('//fields')[0]
+      @fields ||= document.xpath('//fields')[0]
     end
 
     def field_name(number)
@@ -24,7 +31,7 @@ module Damage
       field.attribute('name').value
     end
 
-    def field_number(name, strict=true)
+    def field_number(name, strict = true)
       if match = name.match(/Unknown(\d*)/)
         match[1]
       else
@@ -56,11 +63,11 @@ module Damage
       entity = message_lookup('name', msg_name)
       entity.attribute('msgtype').value
     end
-    
+
     def header_fields
-      @document.xpath('//header/field')
+      document.xpath('//header/field')
     end
-    
+
     def header_field_names
       node_names_from_nodeset(header_fields)
     end
@@ -76,7 +83,7 @@ module Damage
     def fields_for_message(name)
       message_lookup('name', name).xpath('field')
     end
-    
+
     def field_names_for_message(name)
       node_names_from_nodeset(fields_for_message(name))
     end
@@ -90,7 +97,7 @@ module Damage
     end
 
     def begin_string
-      fix_root = @document.xpath('fix')[0]
+      fix_root = document.xpath('fix')[0]
       major = fix_root.attribute("major").value
       minor = fix_root.attribute("minor").value
       "FIX.#{major}.#{minor}"
@@ -98,9 +105,9 @@ module Damage
 
     private
     def message_lookup(field, value)
-      field = @document.xpath("//messages/message[@#{field}='#{value}']")[0]
-      raise UnknownMessageTypeError unless field
-      field
+      element = document.xpath("//messages/message[@#{field}='#{value}']")[0]
+      raise UnknownMessageTypeError unless element
+      element
     end
 
     def required_nodes_in_nodeset(nodeset)
