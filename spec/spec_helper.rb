@@ -2,7 +2,8 @@ require 'pry'
 require 'timecop'
 require 'celluloid/test'
 require 'celluloid/rspec'
-# require 'celluloid/probe'
+require 'rspec/its'
+require 'rspec/collection_matchers'
 require File.expand_path('../../lib/damage', __FILE__)
 require File.expand_path('../../lib/damage/fake_fix_server', __FILE__)
 Dir["./spec/support/**/*.rb"].sort.each {|f| require f}
