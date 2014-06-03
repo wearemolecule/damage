@@ -46,13 +46,13 @@ describe Damage::Response do
       context "true" do
         let(:value) { "Y" }
 
-        it { should be_true }
+        it { should be_truthy }
       end
 
       context "false" do
         let(:value) { "F" }
 
-        it { should be_false }
+        it { should be_falsey }
       end
     end
   end

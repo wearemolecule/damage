@@ -26,6 +26,6 @@ describe Damage::Vendor::IceClient do
       end
     end
 
-    it { should be_true }
+    it { should be_truthy }
   end
 end
