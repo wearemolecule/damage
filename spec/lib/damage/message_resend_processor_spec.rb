@@ -35,23 +35,23 @@ describe Damage::MessageResendProcessor do
 
     context "Logon" do
       let(:type) { "Logon" }
-      it { should be_true }
+      it { should be_truthy }
     end
     context "Logout" do
       let(:type) { "Logout" }
-      it { should be_true }
+      it { should be_truthy }
     end
     context "Heartbeat" do
       let(:type) { "Heartbeat" }
-      it { should be_true }
+      it { should be_truthy }
     end
     context "ResendRequest" do
       let(:type) { "ResendRequest" }
-      it { should be_true }
+      it { should be_truthy }
     end
     context "ExecutionReport" do
       let(:type) { "ExecutionReport" }
-      it { should be_false }
+      it { should be_falsey }
     end
   end
 
@@ -159,6 +159,6 @@ describe Damage::MessageResendProcessor do
       instance.should_receive(:reduce_messages).with(messages).and_return true
     end
 
-    it { should be_true }
+    it { should be_truthy }
   end
 end

@@ -2,11 +2,8 @@ module Damage
   module Vendor
     module IceClient
       def request_missing_messages
-        final_missing = persistence.missing_message_ranges.last
-        last_transaction = final_missing.try(:transact_time) if final_missing
-        last_transaction ||= (Time.now - 2.days)
-        last_transact_time = last_transaction
-        last_trade_date = last_transaction.to_date
+        last_transact_time = last_transaction_time
+        last_trade_date = last_transact_time.to_date
         params = {
           'TradeRequestID' => SecureRandom.hex.to_s,
           'TradeRequestType' => '0',
@@ -19,6 +16,22 @@ module Damage
         Damage.configuration.logger.info "Requesting trade capture with snapshot and subscription"
         send_message(socket, message_str)
       end
+
+      def last_transaction_time
+        Date.today.to_time
+      end
+
+      # def _last_transaction_time
+      #   last_missing_range_seqs = persistence.missing_message_ranges.flatten
+      #   if last_missing_range_seqs          
+      #     last_received_seq_num = last_missing_range_seqs.first - 1
+      #     last_received_msg = rcvd_messages.select do |m|
+      #       m.msg_seq
+      #     end
+      #   else
+      #     Time.now - 2.days
+      #   end
+      # end
     end
   end
 end

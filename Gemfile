@@ -4,3 +4,7 @@ source 'https://rubygems.org'
 gemspec
 
 gem 'guard-rspec'
+
+group :development do
+  gem "fuubar"
+end

@@ -148,13 +148,13 @@ describe Damage::Client::Base do
     context "less than tolerance" do
       let(:time_since) { 30 }
 
-      it { should be_false }
+      it { should be_falsey }
     end
 
     context "greater than tolerance" do
       let(:time_since) { 60 }
 
-      it { should be_true }
+      it { should be_truthy }
     end
   end
 
@@ -169,12 +169,12 @@ describe Damage::Client::Base do
 
     subject { instance.check_if_remote_alive }
 
-    it { should be_false }
+    it { should be_falsey }
 
     context 'with expired heartbeat' do
       let(:last_remote_heartbeat) { Time.now - 60.seconds }
 
-      it { should be_true }
+      it { should be_truthy }
     end
   end
 end

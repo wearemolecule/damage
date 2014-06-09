@@ -46,18 +46,18 @@ describe Damage::Message do
     
     context 'when the field is not included' do
       let(:hash) { { 'SomeOtherField' => 1 } }
-      it { should be_false }
+      it { should be_falsey }
     end
     
     context 'when the field is included' do
       context 'but the value is empty' do
         let(:hash) { { key => nil } }
-        it { should be_false }
+        it { should be_falsey }
       end
       
       context 'but the value is included' do
         let(:hash) { { key => 1 } }
-        it { should be_true }
+        it { should be_truthy }
       end
     end
   end
@@ -65,13 +65,13 @@ describe Damage::Message do
   describe '#headers_are_valid?' do
     subject { instance.headers_are_valid? }
     before { schema.should_receive(:required_header_field_names).and_return([]) }
-    it { should be_true }
+    it { should be_truthy }
   end
 
   describe '#properties_are_valid?' do
     subject { instance.properties_are_valid? }
     before { schema.should_receive(:required_field_names_for_message).with(message_type).and_return([]) }
-    it { should be_true }
+    it { should be_truthy }
   end
 
   describe '#valid?' do
@@ -80,7 +80,7 @@ describe Damage::Message do
       instance.should_receive(:headers_are_valid?).and_return(true)
       instance.should_receive(:properties_are_valid?).and_return(true)
     end
-    it { should be_true }
+    it { should be_truthy }
   end
 
   describe '#fixify' do
