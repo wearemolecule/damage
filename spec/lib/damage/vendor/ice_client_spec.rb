@@ -33,7 +33,7 @@ describe Damage::Vendor::IceClient do
           true
         end
 
-        expect(action!).to be_truthy
+        expect(action!).to be_true
       end
     end
 
@@ -56,7 +56,7 @@ describe Damage::Vendor::IceClient do
           true
         end
         
-        expect(action!).to be_truthy
+        expect(action!).to be_true
       end
     end
 # >>>>>>> 77802f3... slight nodification to the ice client to handle missing message requests
