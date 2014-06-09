@@ -1,6 +1,7 @@
 require 'spec_helper'
 
 describe Damage::Client do
+  # normally I like to use `self.described_class` let
   let(:klass) { Damage::Client }
   let(:listeners) { [] }
   # let(:options) { { server_ip: "127.0.0.1", port: 767676, schema_name: "FIX44", autostart: false } }
