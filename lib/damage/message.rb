@@ -44,8 +44,10 @@ module Damage
 
     def fixify(hash)
       hash.map do |key, val|
-        [@schema.field_number(key, strict?), val]
-      end.reject do |num, val|
+        [val].flatten.map do |v|
+          [@schema.field_number(key, strict?), v]
+        end
+      end.flatten(1).reject do |num, val|
         num.nil?
       end.map do |num, v|
         val = case @schema.field_type(num)

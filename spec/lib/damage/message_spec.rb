@@ -4,7 +4,15 @@ describe Damage::Message do
   let(:klass) { self.described_class }
   let(:schema) { double("schema") }
   let(:msg_to_type) { {message_type => "0"} }
-  let(:name_to_num) { {"SendingTime" => "10", "BooleanField" => "11", "StringField" => "12", "UtcField" => "13"} }
+  let(:name_to_num) do
+    {
+      "SendingTime" => "10", 
+      "BooleanField" => "11", 
+      "StringField" => "12", 
+      "UtcField" => "13",
+      "ArrayField" => "14" 
+    }
+  end
   let(:num_to_type) { {"10" => "UTCTIMESTAMP", "11" => "BOOLEAN", "12" => "STRING", "13" => "UTCTIMESTAMP"} }
   let(:headers) { {} }
   let(:properties) { {} }
@@ -185,11 +193,35 @@ describe Damage::Message do
   describe "#full_message" do
     subject { instance.full_message }
     let(:headers) { {"BooleanField" => true } }
-    let(:properties) { {"StringField" => "test" } }
-      it { should eq "8=FIX.4.2" + Damage::SOH + "9=43" + Damage::SOH +
-           "35=0" + Damage::SOH + "11=Y" + Damage::SOH +
-           "10=20130101-00:00:00.000" + Damage::SOH + "12=test" + Damage::SOH +
-           "10=211" + Damage::SOH}
+
+    context 'when the properties passed to the message are simple' do
+      let(:properties) { {"StringField" => "test" } }
+
+      it "creates a properly formatted FIX message" do
+        should eq "8=FIX.4.2" + Damage::SOH + 
+                  "9=43" + Damage::SOH +
+                  "35=0" + Damage::SOH + 
+                  "11=Y" + Damage::SOH +
+                  "10=20130101-00:00:00.000" + Damage::SOH + 
+                  "12=test" + Damage::SOH +
+                  "10=211" + Damage::SOH
+      end
+    end
+
+    context 'when the properties passed to the message include an array' do
+      let(:properties) { { "ArrayField" => ["foo", "bar"] } }
+
+      it "creates a properly formatted FIX message" do
+        should eq "8=FIX.4.2" + Damage::SOH + 
+                  "9=49" + Damage::SOH +
+                  "35=0" + Damage::SOH + 
+                  "11=Y" + Damage::SOH +
+                  "10=20130101-00:00:00.000" + Damage::SOH + 
+                  "14=foo" + Damage::SOH +
+                  "14=bar" + Damage::SOH +
+                  "10=055" + Damage::SOH
+      end
+    end
   end
 
   describe "#to_s" do
