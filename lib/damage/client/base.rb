@@ -84,17 +84,24 @@ module Damage
         while buff = full_read_partial(socket)
           data << buff
         end
-        responses = ResponseExtractor.new(@schema, data).responses
-        responses.each do |response|
-          persistence.persist_rcvd(response)
-          async.message_processor(response)
-        end
-
+        handle_read_message(data)
       rescue IOError, Errno::EBADF, Errno::ECONNRESET
         _info "Connection Closed"
         raise FixSocketClosedError, "socket was closed on us"
       rescue Errno::ETIMEDOUT
         #no biggie, keep listening
+      end
+
+      def handle_read_message(data)
+        responses = ResponseExtractor.new(@schema, data).responses
+        responses.each do |response|
+          handle_read_response(response)
+        end
+      end
+
+      def handle_read_response(response)
+        persistence.persist_rcvd(response)
+        async.message_processor(response)
       end
 
       def message_processor(response)
