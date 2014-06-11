@@ -63,9 +63,9 @@ module Damage
     end
 
     def underscored_keys
-      Hash[*message_hash.map { |k,v|
+      Hash[*message_hash.map do |k,v|
         [k.underscore, v]
-      }.flatten]
+      end.flatten(1)]
     end
 
     #easy access to properties
