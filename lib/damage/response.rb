@@ -70,13 +70,20 @@ module Damage
 
     #easy access to properties
     def respond_to?(meth)
-      key = meth.to_s.camelize
-      message_hash.has_key?(key) || super
+      _has_property?(_method_to_property_key(meth)) || super
+    end
+
+    def _method_to_property_key(meth)
+      meth.to_s.camelize
+    end
+
+    def _has_property?(key)
+      message_hash.has_key?(key) || schema.field_names_for_message(schema.msg_name(msg_type)).include?(key)
     end
 
     def method_missing(meth, *args, &block)
-      key = meth.to_s.camelize
-      if message_hash.has_key? key
+      key = _method_to_property_key(meth)
+      if _has_property?(key)
         message_hash[key]
       else
         super
