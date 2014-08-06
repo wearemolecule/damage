@@ -3,9 +3,48 @@ require 'spec_helper'
 describe Damage::Response do
   let(:klass) { self.described_class }
   let(:instance) { klass.new(message) }
+  # let(:base_message) { "8=FIX.4.2\u00019=00064\u000135=0\u000149=TTDS68BO\u000156=MOLECULEDTS\u000134=768\u000152=20140218-00:19:45.207\u000110=085\u0001" }
   let(:heartbeat) { "8=FIX.4.2\u00019=00064\u000135=0\u000149=TTDS68BO\u000156=MOLECULEDTS\u000134=768\u000152=20140218-00:19:45.207\u000110=085\u0001" }
   let(:message) { heartbeat }
   let(:message_time) { ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["UTC"], Time.utc(2014, 2, 18, 0, 19, 45, 207000)) }
+
+  describe '#method_missing and #respond_to?' do
+    subject { nil }
+
+    context 'when the field is defined in the schema for the message' do
+      let(:message) { "8=FIX.4.2\u00019=00064\u000135=A\u000149=TTDS68BO\u000156=MOLECULEDTS\u000134=768\u000152=20140218-00:19:45.207#{ field }\u000110=085\u0001" }
+
+      context 'when the field is in the message' do
+        let(:field) { "\u000198=1" }
+
+        it { expect(instance.method_missing(:encrypt_method)).not_to be_nil }
+        it { expect(instance.method_missing(:msg_type)).to eq "A" }
+
+        it { expect(instance).to respond_to :msg_type }
+        it { expect(instance).to respond_to :raw_data }
+      end
+
+      context 'but the field is NOT in the message itself' do
+        let(:field) { "" }
+
+        it { expect(instance.method_missing(:encrypt_method)).to be_nil }
+        it { expect(instance.method_missing(:msg_type)).to eq "A" }
+
+        it { expect(instance).to respond_to :msg_type }
+        it { expect(instance).to respond_to :raw_data }
+      end
+    end
+
+    context 'when the field is not defined in the schema for the message' do
+      let(:message) { heartbeat }
+
+      it { expect{ instance.method_missing(:encrypt_method) }.to raise_error }
+      it { expect(instance.method_missing(:msg_type)).to eq "0" }
+
+      it { expect(instance).to respond_to :msg_type }
+      it { expect(instance).not_to respond_to :raw_data }
+    end
+  end
 
   describe '#cast_field_value' do
     subject { instance.cast_field_value(type, value) }
