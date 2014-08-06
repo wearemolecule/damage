@@ -19,3 +19,4 @@ tmp
 rcvd.dat
 sent.dat
 rcvd.old
+.rspec-local
