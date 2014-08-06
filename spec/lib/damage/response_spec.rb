@@ -139,7 +139,7 @@ describe Damage::Response do
 
     before { instance.stub(:message_hash).and_return(message_hash) }
 
-    let(:message_hash) do
+    let(:base_message_hash) do
       {
         "BeginString" => "FIX.4.2",
         "BodySize" => 64,
@@ -152,13 +152,25 @@ describe Damage::Response do
       }
     end
 
-    it { should include({"begin_string" => "FIX.4.2"}) }
-    it { should include({"body_size" => 64}) }
-    it { should include({"msg_type" => "0"}) }
-    it { should include({"sender_id" => "BLAH"}) }
-    it { should include({"target_id" => "MOLECULEDTS"}) }
-    it { should include({"msg_seq_num" => 768}) }
-    it { should include({"sending_time" => message_time}) }
-    it { should include({"checksum" => "085"}) }
+    shared_examples_for "a well-formed, underscored hash" do
+      it { should include({"begin_string" => "FIX.4.2"}) }
+      it { should include({"body_size" => 64}) }
+      it { should include({"msg_type" => "0"}) }
+      it { should include({"sender_id" => "BLAH"}) }
+      it { should include({"target_id" => "MOLECULEDTS"}) }
+      it { should include({"msg_seq_num" => 768}) }
+      it { should include({"sending_time" => message_time}) }
+      it { should include({"checksum" => "085"}) }
+    end
+
+    context 'with a simple message hash' do
+      let(:message_hash) { base_message_hash }
+      it_should_behave_like "a well-formed, underscored hash"
+    end
+
+    context 'with a message hash with array values' do
+      let(:message_hash) { base_message_hash.merge("PartyIDs" => ["A", "B"]) }
+      it_should_behave_like "a well-formed, underscored hash"
+    end
   end
 end
