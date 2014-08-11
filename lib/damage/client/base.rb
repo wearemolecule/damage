@@ -8,13 +8,21 @@ module Damage
 
         base.send(:finalizer, :shut_down)
       end
-      
+
       BUFFER_SIZE = 4096
       REMOTE_LOSS_TOLERANCE = 2
 
-      attr_accessor :heartbeat_timer, :socket, :listeners, :config,
-        :options, :persistence, :schema, :logged_out, :last_remote_heartbeat,
-        :heartbeat_interval, :strict
+      attr_accessor :heartbeat_timer,
+                    :socket,
+                    :listeners,
+                    :config,
+                    :options,
+                    :persistence,
+                    :schema,
+                    :logged_out,
+                    :last_remote_heartbeat,
+                    :heartbeat_interval,
+                    :strict
       attr_reader :test_request_sent
 
       module ClassMethods
@@ -34,10 +42,13 @@ module Damage
         self.socket = TCPSocket.new(options[:server_ip], options[:port])
         @msg_seq_num = self.persistence.current_sent_seq_num
         self.heartbeat_interval = config.heartbeat_int.to_i
-        self.heartbeat_timer = every(self.heartbeat_interval) { async.send_heartbeat }
         self.last_remote_heartbeat = Time.now
         self.strict = options[:strict] || options[:strict].nil?
         @listening = true
+
+        self.heartbeat_timer = every(self.heartbeat_interval) do
+          async.tick!
+        end
 
         setup_listeners(listeners)
         send_logon
@@ -51,6 +62,10 @@ module Damage
           sleep(0.1)
           read_message(@socket)
         end
+      end
+
+      def tick!
+        send_heartbeat
       end
 
       def default_headers
@@ -173,7 +188,7 @@ module Damage
           self.send_test_request
         end
       end
-      
+
       def strict?
         @strict
       end
@@ -248,7 +263,7 @@ module Damage
         _info "Sending #{msg_type}:"
         send_message(@socket, message_str)
       end
-      
+
       private
 
       def _info(message)
