@@ -30,12 +30,14 @@ module Damage
 
         if logged_in?
           if in_or_near_maintenance_window?(t)
+            Damage.configuration.logger.info "Stopping ICE FIX Listener for maintenance window"
             send_logout
           elsif in_operating_window?(t)
             send_heartbeat
           end
         else
           if in_operating_window?(t)
+            Damage.configuration.logger.info "Starting ICE FIX Listener after maintenance window"
             send_logon
           end
         end
