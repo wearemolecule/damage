@@ -26,7 +26,7 @@ module Damage
       end
 
       def tick!
-        t = Time.now
+        t = Time.now.utc
 
         if logged_in?
           if in_or_near_maintenance_window?(t)
@@ -44,8 +44,8 @@ module Damage
       end
 
       TIME_FORMAT = "%H:%M:%S"
-      ICE_WEEKDAY_MAINT_WINDOW_START = "18:30:00"
-      ICE_WEEKDAY_MAINT_WINDOW_END = "19:30:00"
+      ICE_WEEKDAY_MAINT_WINDOW_START = "22:30:00"
+      ICE_WEEKDAY_MAINT_WINDOW_END = "23:30:00"
       WEEKDAY_MAINTENANCE_WINDOW = (ICE_WEEKDAY_MAINT_WINDOW_START..ICE_WEEKDAY_MAINT_WINDOW_END).to_a.freeze
 
       def in_operating_window?(t)
@@ -84,7 +84,7 @@ module Damage
       end
 
       def _within_weekend_operating_range?(t)
-        t.sunday? && t.hour > 17
+        t.sunday? && t.hour > 21
       end
 
       def logged_out?

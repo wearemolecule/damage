@@ -8,7 +8,7 @@ describe Damage::Vendor::IceClient do
 
 
   shared_context "operating window" do
-    let(:base_date) { Time.new(2014, 8, 7, 9) }  # a Thursday, 9am
+    let(:base_date) { Time.utc(2014, 8, 7, 14) }  # a Thursday, 9am
 
     before do
       instance.tap do |t|
@@ -360,6 +360,8 @@ describe Damage::Vendor::IceClient do
   end
 
   describe '#request_missing_messages' do
+    include_context "operating window"
+
     let(:action!) { instance.request_missing_messages }
     subject { nil }
 
