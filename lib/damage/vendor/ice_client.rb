@@ -44,7 +44,7 @@ module Damage
       end
 
       TIME_FORMAT = "%H:%M:%S"
-      # Times in EST with a +- minute on either side
+      # Times in EST with a +- minute on either side.  using in_time_zone will take daylight savings time out of play
       ICE_WEEKDAY_MAINT_WINDOW_START = "18:29:00"
       ICE_WEEKDAY_MAINT_WINDOW_END = "19:31:00"
       WEEKDAY_MAINTENANCE_WINDOW = (ICE_WEEKDAY_MAINT_WINDOW_START..ICE_WEEKDAY_MAINT_WINDOW_END).to_a.freeze
@@ -55,19 +55,6 @@ module Damage
 
       def in_maintenance_window?(t)
         !in_operating_window?(t)
-      end
-
-      def in_or_near_maintenance_window?(t)
-        near_maintenance_window?(t) || in_maintenance_window?(t)
-      end
-
-      def near_maintenance_window?(t)
-        return false unless t.weekday?
-
-        maint_window_threshold = (Time.parse(ICE_WEEKDAY_MAINT_WINDOW_START) - heartbeat_interval.seconds).strftime(TIME_FORMAT)
-        maint_window_threshold_window = (maint_window_threshold..ICE_WEEKDAY_MAINT_WINDOW_START)
-
-        _within_time_range?(t, maint_window_threshold_window)
       end
 
       def _within_time_range?(t, time_range)
@@ -85,7 +72,7 @@ module Damage
       end
 
       def _within_weekend_operating_range?(t)
-        t.sunday? && t.hour > 17
+        t.sunday? && t > Time.utc(t.year, t.month, t.day, 21, 0, 0).in_time_zone("Eastern Time (US & Canada)")
       end
 
       def logged_out?
