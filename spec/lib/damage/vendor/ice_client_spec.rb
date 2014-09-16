@@ -8,7 +8,7 @@ describe Damage::Vendor::IceClient do
 
 
   shared_context "operating window" do
-    let(:base_date) { Time.utc(2014, 8, 7, 14) }  # a Thursday, 9am
+    let(:base_date) { Time.utc(2014, 8, 7, 14) }  # a Thursday, 9am UTC
 
     before do
       instance.tap do |t|
@@ -215,9 +215,9 @@ describe Damage::Vendor::IceClient do
         it { should be_true }
       end
 
-      context 'between 6:30pm and 7:30pm' do
+      context 'between 6:30pm and 7:30pm UTC' do
         let(:time) { base_date + 10.hours } # Thu, 7pm
-        it { should be_false }
+        it { subject.should be_false }
       end
 
       context 'after 7:30pm' do
@@ -368,13 +368,14 @@ describe Damage::Vendor::IceClient do
     let(:persistence) { double }
     let(:schema) { Damage::Schema.new("schemas/FIX44.xml") }
 
-    before do
-      instance.stub(persistence: persistence, default_headers: {}, strict?: false, socket: double, schema: schema, _info: nil)
-    end
+    # before do
+    #  instance.stub(persistence: persistence, default_headers: {}, strict?: false, socket: double, schema: schema, _info: nil)
+    # end
 
     context 'when there are missing messages' do
       before do
         persistence.stub(missing_message_ranges: [[6,8]])
+        instance.persistence = persistence
       end
 
       specify do

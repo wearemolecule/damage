@@ -26,10 +26,10 @@ module Damage
       end
 
       def tick!
-        t = Time.now.utc
+        t = Time.now.utc.in_time_zone("Eastern Time (US & Canada)")
 
         if logged_in?
-          if in_or_near_maintenance_window?(t)
+          if in_maintenance_window?(t)
             Damage.configuration.logger.info "Stopping ICE FIX Listener for maintenance window"
             send_logout
           elsif in_operating_window?(t)
@@ -44,8 +44,9 @@ module Damage
       end
 
       TIME_FORMAT = "%H:%M:%S"
-      ICE_WEEKDAY_MAINT_WINDOW_START = "22:30:00"
-      ICE_WEEKDAY_MAINT_WINDOW_END = "23:30:00"
+      # Times in EST with a +- minute on either side
+      ICE_WEEKDAY_MAINT_WINDOW_START = "18:29:00"
+      ICE_WEEKDAY_MAINT_WINDOW_END = "19:31:00"
       WEEKDAY_MAINTENANCE_WINDOW = (ICE_WEEKDAY_MAINT_WINDOW_START..ICE_WEEKDAY_MAINT_WINDOW_END).to_a.freeze
 
       def in_operating_window?(t)
@@ -84,7 +85,7 @@ module Damage
       end
 
       def _within_weekend_operating_range?(t)
-        t.sunday? && t.hour > 21
+        t.sunday? && t.hour > 17
       end
 
       def logged_out?

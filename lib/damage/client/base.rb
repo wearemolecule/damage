@@ -208,7 +208,8 @@ module Damage
       end
 
       def send_logout
-        _send_message("Logout", { 'ForceLogout' => '0' })
+        # _send_message("Logout", { 'ForceLogout' => '0' })
+        _send_message("Logout",{})
       end
 
       def request_missing_messages
