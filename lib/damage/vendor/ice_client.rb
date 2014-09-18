@@ -36,8 +36,10 @@ module Damage
             send_heartbeat
           end
         else
+          Damage.configuration.logger.info "logged out in tick"
           if in_operating_window?(t)
             Damage.configuration.logger.info "Starting ICE FIX Listener after maintenance window"
+            resume_listener
             send_logon
           end
         end

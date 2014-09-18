@@ -102,7 +102,7 @@ module Damage
         handle_read_message(data)
       rescue IOError, Errno::EBADF, Errno::ECONNRESET
         _info "Connection Closed"
-        raise FixSocketClosedError, "socket was closed on us"
+        raise FixSocketClosedError, "socket was closed on us" if @listening
       rescue Errno::ETIMEDOUT
         #no biggie, keep listening
       end
@@ -133,7 +133,7 @@ module Damage
           async.request_missing_messages
         when "Logout"
           self.logged_out = true
-          self.terminate
+          pause_listener
         when "SequenceReset"
           async.sequence_reset(response)
         when "ResendRequest"
@@ -249,6 +249,19 @@ module Damage
         send_logout if @socket
       rescue Errno::EPIPE
         shut_down
+      end
+
+      def pause_listener
+        _info "Pausing listener..."
+        @listening = false
+        @socket.try(:close)
+      end
+
+      def resume_listener
+        _info "Resuming listener..."
+        self.socket = TCPSocket.new(self.options[:server_ip], self.options[:port])
+        @listening = true
+        async.run
       end
 
       def shut_down
