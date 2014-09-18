@@ -47,8 +47,8 @@ module Damage
 
       TIME_FORMAT = "%H:%M:%S"
       # Times in EST with a +- minute on either side.  using in_time_zone will take daylight savings time out of play
-      ICE_WEEKDAY_MAINT_WINDOW_START = "18:29:00"
-      ICE_WEEKDAY_MAINT_WINDOW_END = "19:31:00"
+      ICE_WEEKDAY_MAINT_WINDOW_START = "18:28:00"
+      ICE_WEEKDAY_MAINT_WINDOW_END = "19:32:00"
       WEEKDAY_MAINTENANCE_WINDOW = (ICE_WEEKDAY_MAINT_WINDOW_START..ICE_WEEKDAY_MAINT_WINDOW_END).to_a.freeze
 
       def in_operating_window?(t)
