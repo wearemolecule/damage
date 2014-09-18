@@ -28,7 +28,7 @@ module Damage
     end
 
     def message_hash
-      message_hash ||= _message_hash_from_components
+      @message_hash ||= _message_hash_from_components
     end
 
     def _message_tuples_from_components
