@@ -48,8 +48,8 @@ describe Damage::Vendor::IceClient do
         it { should be_true }
       end
 
-      context 'between 6:28:30pm and 6:29:00pm' do
-        let(:time) { Time.utc(2014, 9, 16, 22, 28, 37).in_time_zone("Eastern Time (US & Canada)") }
+      context 'between 6:27:30pm and 6:28:00pm' do
+        let(:time) { Time.utc(2014, 9, 16, 22, 27, 37).in_time_zone("Eastern Time (US & Canada)") }
         it { should be_true }
       end
 
@@ -95,8 +95,8 @@ describe Damage::Vendor::IceClient do
         it { should be_false }
       end
 
-      context 'between 6:28:30pm and 6:29:00pm' do
-        let(:time) { Time.utc(2014, 9, 16, 22, 28, 37).in_time_zone("Eastern Time (US & Canada)") }
+      context 'between 6:27:30pm and 6:28:00pm' do
+        let(:time) { Time.utc(2014, 9, 16, 22, 27, 37).in_time_zone("Eastern Time (US & Canada)") }
         it { should be_false }
       end
 
