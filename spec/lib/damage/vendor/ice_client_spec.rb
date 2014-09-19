@@ -58,6 +58,16 @@ describe Damage::Vendor::IceClient do
         it { should be_false, "expected #{time} to not be in the window" }
       end
 
+      context 'Friday at 2 p.m. EST' do
+        let(:time) { Time.utc(2014, 9, 19, 18, 0, 0).in_time_zone("Eastern Time (US & Canada)") }
+        it { should be_true }
+      end
+
+      context 'Friday at 6:30 p.m. EST' do
+        let(:time) { Time.utc(2014, 9, 19, 22, 30, 0).in_time_zone("Eastern Time (US & Canada)") }
+        it { should be_false, "expected #{time} to not be in the operating window" }
+      end
+
       context 'after 7:30pm' do
         context 'Mon-Thu' do
           let(:time) { Time.utc(2014, 9, 16, 23, 32, 1).in_time_zone("Eastern Time (US & Canada)") }

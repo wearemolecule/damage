@@ -67,7 +67,7 @@ module Damage
         return false unless t.weekday?
 
         if t.friday?
-          t < Time.parse("#{t.to_date.strftime("%Y-%m-%d")} #{ICE_WEEKDAY_MAINT_WINDOW_START}")
+          t < Time.utc(t.year, t.month, t.day, 22, 28, 0).in_time_zone("Eastern Time (US & Canada)")
         else
           !_within_time_range?(t, WEEKDAY_MAINTENANCE_WINDOW)
         end
