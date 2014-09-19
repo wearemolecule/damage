@@ -32,50 +32,50 @@ describe Damage::Vendor::IceClient do
 
     context 'on a weekend' do
       context 'before Sunday at 5pm' do
-        let(:time) { Time.utc(2014, 9, 14, 20, 0, 0).in_time_zone("Eastern Time (US & Canada)") } # Sun, 4pm
+        let(:time) { ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 9, 14, 16, 0, 0) } # Sun, 4pm
         it { should be_false }
       end
 
       context 'after Sunday at 5pm' do
-        let(:time) { Time.utc(2014, 9, 14, 21, 27, 0).in_time_zone("Eastern Time (US & Canada)") } # Sun, 5:27
+        let(:time) { ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 9, 14, 17, 27, 0) } # Sun, 5:27
         it { should be_true }
       end
     end
 
     context 'on a weekday' do
       context 'before 6:29:30pm' do
-        let(:time) { Time.utc(2014, 9, 11, 13, 0, 0).in_time_zone("Eastern Time (US & Canada)") } # Thu, 9am
+        let(:time) { ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 9, 11, 9, 0, 0) } # Thu, 9am
         it { should be_true }
       end
 
       context 'between 6:27:30pm and 6:28:00pm' do
-        let(:time) { Time.utc(2014, 9, 16, 22, 27, 37).in_time_zone("Eastern Time (US & Canada)") }
+        let(:time) { ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 9, 16, 18, 27, 37) }
         it { should be_true }
       end
 
       context 'between 6:30:00pm and 7:30:00pm' do
-        let(:time) { Time.utc(2014, 9, 16, 22, 32, 1).in_time_zone("Eastern Time (US & Canada)") }
+        let(:time) { ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 9, 16, 18, 32, 1) }
         it { should be_false, "expected #{time} to not be in the window" }
       end
 
       context 'Friday at 2 p.m. EST' do
-        let(:time) { Time.utc(2014, 9, 19, 18, 0, 0).in_time_zone("Eastern Time (US & Canada)") }
+        let(:time) { ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 9, 19, 14, 0, 0) }
         it { should be_true }
       end
 
       context 'Friday at 6:30 p.m. EST' do
-        let(:time) { Time.utc(2014, 9, 19, 22, 30, 0).in_time_zone("Eastern Time (US & Canada)") }
+        let(:time) { ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 9, 19, 18, 30, 0) }
         it { should be_false, "expected #{time} to not be in the operating window" }
       end
 
       context 'after 7:30pm' do
         context 'Mon-Thu' do
-          let(:time) { Time.utc(2014, 9, 16, 23, 32, 1).in_time_zone("Eastern Time (US & Canada)") }
+          let(:time) { ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 9, 16, 19, 32, 1) }
           it { should be_true }
         end
 
         context 'on Fridays after 7:30' do
-          let(:time) { Time.utc(2014, 9, 12, 23, 32, 1).in_time_zone("Eastern Time (US & Canada)") }
+          let(:time) { ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 9, 12, 19, 32, 1) }
           it { should be_false }
         end
       end
@@ -89,40 +89,40 @@ describe Damage::Vendor::IceClient do
 
     context 'on a weekend' do
       context 'before Sunday at 5pm' do
-        let(:time) { Time.utc(2014, 9, 13, 13, 0, 0).in_time_zone("Eastern Time (US & Canada)") } # Sat, 9am
+        let(:time) { ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 9, 13, 9, 0, 0) } # Sat, 9am
         it { should be_true, "expected #{time} to be in the window" }
       end
 
       context 'after Sunday at 5pm' do
-        let(:time) { Time.utc(2014, 9, 14, 21, 27, 0).in_time_zone("Eastern Time (US & Canada)") }
+        let(:time) { ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 9, 14, 17, 27, 0) }
         it { should be_false }
       end
     end
 
     context 'on a weekday' do
       context 'before 6:29:00pm' do
-        let(:time) { Time.utc(2014, 9, 11, 13, 0, 0).in_time_zone("Eastern Time (US & Canada)") } # Thu, 9am
+        let(:time) { ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 9, 11, 9, 0, 0) } # Thu, 9am
         it { should be_false }
       end
 
       context 'between 6:27:30pm and 6:28:00pm' do
-        let(:time) { Time.utc(2014, 9, 16, 22, 27, 37).in_time_zone("Eastern Time (US & Canada)") }
+        let(:time) { ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 9, 16, 18, 27, 37) }
         it { should be_false }
       end
 
       context 'between 6:30:00pm and 7:30:00pm' do
-        let(:time) { Time.utc(2014, 9, 16, 22, 32, 1).in_time_zone("Eastern Time (US & Canada)") }
+        let(:time) { ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 9, 16, 18, 32, 1) }
         it { should be_true, "expected #{time} to be in the window" }
       end
 
       context 'after 7:30pm' do
         context 'Mon-Thu' do
-          let(:time) { Time.utc(2014, 9, 11, 0, 0, 0).in_time_zone("Eastern Time (US & Canada)") }
+          let(:time) { ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 9, 11, 20, 0) }
           it { should be_false }
         end
 
         context 'on Fridays' do
-          let(:time) { Time.utc(2014, 9, 13, 0, 0, 0).in_time_zone("Eastern Time (US & Canada)") }
+          let(:time) { ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 9, 12, 20, 0) }
           it { should be_true, "expected #{time} to be in the window" }
         end
       end
@@ -139,29 +139,29 @@ describe Damage::Vendor::IceClient do
     subject { instance._within_weekday_operating_range?(time) }
 
     context 'on a weekend' do
-      let(:time) { Time.utc(2014, 9, 13, 13, 0, 0).in_time_zone("Eastern Time (US & Canada)") } # Sat, 9am
+      let(:time) {  ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 9, 13, 9, 0, 0) } # Sat, 9am
       it { should be_false }
     end
 
     context 'on a weekday' do
       context 'before 6:30pm' do
-        let(:time) { Time.utc(2014, 9, 11, 13, 0, 0).in_time_zone("Eastern Time (US & Canada)") } # Thu, 9am
+        let(:time) {  ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 9, 11, 9, 0, 0) } # Thu, 9am
         it { should be_true }
       end
 
       context 'between 6:30pm and 7:30pm EST' do
-        let(:time) { Time.utc(2014, 9, 16, 23, 0, 0).in_time_zone("Eastern Time (US & Canada)") } # Tues, 7pm
+        let(:time) { ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 9, 16, 19, 0, 0) } # Tues, 7pm
         it { subject.should be_false }
       end
 
       context 'after 7:30pm' do
         context 'Mon-Thu' do
-          let(:time) { Time.utc(2014, 9, 12, 0, 0, 0).in_time_zone("Eastern Time (US & Canada)") } # Thu, 8pm
+          let(:time) {  ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 9, 11, 20, 0, 0) } # Thu, 8pm
           it { should be_true }
         end
 
         context 'on Fri' do
-          let(:time) { Time.utc(2014, 9, 13, 0, 0, 0).in_time_zone("Eastern Time (US & Canada)") } # Fri, 8pm
+          let(:time) { ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 9, 12, 20, 0, 0) } # Fri, 8pm
           it { should be_false }
         end
       end
@@ -174,23 +174,23 @@ describe Damage::Vendor::IceClient do
     subject { instance._within_weekend_operating_range?(time) }
 
     context 'on a weekday' do
-      let(:time) { Time.utc(2014, 9, 11, 13, 0, 0).in_time_zone("Eastern Time (US & Canada)") }
+      let(:time) { ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 9, 11, 9, 0, 0) }
       it { should be_false }
     end
 
     context 'on a saturday' do
-      let(:time) { Time.utc(2014, 9, 13, 13, 0, 0).in_time_zone("Eastern Time (US & Canada)") } # Sat, 9am
+      let(:time) { ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 9, 13, 9, 0, 0) } # Sat, 9am
       it { should be_false }
     end
 
     context 'on a sunday' do
       context 'before 5pm' do
-        let(:time) { Time.utc(2014, 9, 14, 13, 0, 0).in_time_zone("Eastern Time (US & Canada)")} # Sun, 9am
+        let(:time) { ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 9, 14, 9, 0, 0) } # Sun, 9am
         it { should be_false }
       end
 
       context 'after 5pm' do
-        let(:time) { Time.utc(2014, 9, 14, 22, 0, 0).in_time_zone("Eastern Time (US & Canada)")} # Sun, 6pm
+        let(:time) { ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 9, 14, 18, 0, 0) } # Sun, 6pm
         it { should be_true }
       end
     end
