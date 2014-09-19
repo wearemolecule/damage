@@ -45,11 +45,7 @@ module Damage
         end
       end
 
-      TIME_FORMAT = "%H:%M:%S"
       # Times in EST with a +- minute on either side.  using in_time_zone will take daylight savings time out of play
-      ICE_WEEKDAY_MAINT_WINDOW_START = "18:28:00"
-      ICE_WEEKDAY_MAINT_WINDOW_END = "19:32:00"
-      WEEKDAY_MAINTENANCE_WINDOW = (ICE_WEEKDAY_MAINT_WINDOW_START..ICE_WEEKDAY_MAINT_WINDOW_END).to_a.freeze
 
       def in_operating_window?(t)
         _within_weekday_operating_range?(t) || _within_weekend_operating_range?(t)
@@ -59,22 +55,23 @@ module Damage
         !in_operating_window?(t)
       end
 
-      def _within_time_range?(t, time_range)
-        time_range.include?(t.strftime(TIME_FORMAT))
+      def _within_time_range?(t)
+        (t.to_i >= ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(t.year, t.month, t.day, 18, 28, 0).to_i &&
+         t.to_i <= ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(t.year, t.month, t.day, 19, 32, 0).to_i)
       end
 
       def _within_weekday_operating_range?(t)
         return false unless t.weekday?
 
         if t.friday?
-          t < Time.parse("#{t.to_date.strftime("%Y-%m-%d")} #{ICE_WEEKDAY_MAINT_WINDOW_START}")
+          t < ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(t.year, t.month, t.day, 18, 28, 0)
         else
-          !_within_time_range?(t, WEEKDAY_MAINTENANCE_WINDOW)
+          !_within_time_range?(t)
         end
       end
 
       def _within_weekend_operating_range?(t)
-        t.sunday? && t > Time.utc(t.year, t.month, t.day, 21, 0, 0).in_time_zone("Eastern Time (US & Canada)")
+        t.sunday? && t > ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(t.year, t.month, t.day, 17, 0, 0)
       end
 
       def logged_out?
