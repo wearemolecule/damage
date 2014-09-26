@@ -51,7 +51,12 @@ module Damage
         end
 
         setup_listeners(listeners)
-        send_logon
+
+        if options.has_key?(:reset_sequence) && options[:reset_sequence]
+          send_logon_and_reset
+        else
+          send_logon
+        end
 
         autostart = options[:autostart] || options[:autostart].nil?
         async.run if autostart
@@ -197,6 +202,20 @@ module Damage
         _send_message('TestRequest', { "TestReqID" => Time.now })
       end
 
+      def send_logon_and_reset
+        @msg_seq_num = 1
+        # wipe out messages for account (they will still be in fix_message_history collection)
+        FixMessage.delete_all(account_id: options[:account].id)
+
+        params = {
+          'EncryptMethod' => "0",
+          'HeartBtInt' => config.heartbeat_int.to_s,
+          'RawData' => options[:password],
+          'ResetSeqNumFlag' => true
+        }
+        _send_message("Logon", params)
+      end
+
       def send_logon
         params = {
           'EncryptMethod' => "0",
@@ -208,7 +227,7 @@ module Damage
       end
 
       def send_logout
-        # _send_message("Logout", { 'ForceLogout' => '0' })
+        @listening = false
         _send_message("Logout",{})
       end
 

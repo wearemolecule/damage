@@ -40,7 +40,7 @@ module Damage
           if in_operating_window?(t)
             Damage.configuration.logger.info "Starting ICE FIX Listener after maintenance window"
             resume_listener
-            send_logon
+            send_logon_and_reset
           end
         end
       end
@@ -58,6 +58,7 @@ module Damage
       def _within_time_range?(t)
         (t.to_i >= ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(t.year, t.month, t.day, 18, 28, 0).to_i &&
          t.to_i <= ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(t.year, t.month, t.day, 19, 32, 0).to_i)
+
       end
 
       def _within_weekday_operating_range?(t)
@@ -83,7 +84,12 @@ module Damage
       end
 
       def last_transaction_time
-        Date.today.to_time
+        # ICE only stores current + previous day's history
+        yesterday = Time.now.utc.yesterday.beginning_of_day
+        last_message = FixMessage.max(:created_at) || yesterday
+        history_last_message = FixMessageHistory.max(:created_at) || yesterday
+        last_update = [last_message, history_last_message, yesterday].max
+        last_update
       end
 
       # def _last_transaction_time
