@@ -102,7 +102,7 @@ module Damage
           data << buff
         end
         handle_read_message(data)
-      rescue IOError, Errno::EBADF, Errno::ECONNRESET
+      rescue IOError, Errno::EBADF, Errno::ECONNRESET => ex
         _info "Connection Closed"
         raise FixSocketClosedError, "socket was closed on us" if @listening
       rescue Errno::ETIMEDOUT
@@ -134,8 +134,7 @@ module Damage
           self.logged_out = false
           async.request_missing_messages
         when "Logout"
-          self.logged_out = true
-          pause_listener
+          handle_logout
         when "SequenceReset"
           async.sequence_reset(response)
         when "ResendRequest"
@@ -160,6 +159,11 @@ module Damage
         end
       rescue UnknownMessageTypeError
         _info "Received unknown message #{response.message_hash}"
+      end
+
+      def handle_logout
+        self.logged_out = true
+        self.terminate
       end
 
       def setup_listeners(listener_classes)
@@ -202,7 +206,10 @@ module Damage
       def send_logon_and_reset
         @msg_seq_num = 1
         # wipe out messages for account (they will still be in fix_message_history collection)
-        FixMessage.delete_all(account_id: options[:account].id)
+        if @listeners.has_key?('TradeCaptureReport')
+          listener = @listeners['TradeCaptureReport'].new
+          listener.clear_fix_messages(options[:account])
+        end
 
         params = {
           'EncryptMethod' => "0",
@@ -224,8 +231,7 @@ module Damage
       end
 
       def send_logout
-        @listening = false
-        _send_message("Logout",{})
+        _send_message("Logout", { 'ForceLogout' => '0' })
       end
 
       def request_missing_messages

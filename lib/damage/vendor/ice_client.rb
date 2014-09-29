@@ -75,8 +75,18 @@ module Damage
         t.sunday? && t > ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(t.year, t.month, t.day, 17, 0, 0)
       end
 
+      def handle_logout
+        self.logged_out = true
+        pause_listener
+      end
+
       def logged_out?
         @logged_out
+      end
+
+      def send_logout
+        @listening = false
+        _send_message("Logout",{})
       end
 
       def logged_in?
