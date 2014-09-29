@@ -52,11 +52,8 @@ module Damage
 
         setup_listeners(listeners)
 
-        if options.has_key?(:reset_sequence) && options[:reset_sequence]
-          send_logon_and_reset
-        else
-          send_logon
-        end
+        # logon and reset sequence number
+        send_logon_and_reset
 
         autostart = options[:autostart] || options[:autostart].nil?
         async.run if autostart
