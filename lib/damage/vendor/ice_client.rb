@@ -27,6 +27,15 @@ module Damage
 
       def tick!
         t = Time.now.utc.in_time_zone("Eastern Time (US & Canada)")
+        if shutdown_time?(t) && @listening
+          Damage.configuration.logger.info "Stopping ICE FIX Listener since it's #{t.strftime('%H:%M:%S')}"
+          if logged_in?
+            send_logout
+            sleep(1)
+          else
+            pause_listener
+          end
+        end
 
         if logged_in?
           if in_maintenance_window?(t)
@@ -47,8 +56,12 @@ module Damage
 
       # Times in EST with a +- minute on either side.  using in_time_zone will take daylight savings time out of play
 
+      def shutdown_time?(t)
+        t.to_i >= ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(t.year, t.month, t.day, 21, 00, 0).to_i
+      end
+
       def in_operating_window?(t)
-        _within_weekday_operating_range?(t) || _within_weekend_operating_range?(t)
+        (_within_weekday_operating_range?(t) || _within_weekend_operating_range?(t)) && !shutdown_time?(t)
       end
 
       def in_maintenance_window?(t)

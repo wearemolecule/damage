@@ -45,6 +45,7 @@ module Damage
         self.last_remote_heartbeat = Time.now
         self.strict = options[:strict] || options[:strict].nil?
         @listening = true
+        self.logged_out = true
 
         self.heartbeat_timer = every(self.heartbeat_interval) do
           async.tick!
@@ -52,8 +53,14 @@ module Damage
 
         setup_listeners(listeners)
 
-        # logon and reset sequence number
-        send_logon_and_reset
+        t = Time.now.utc.in_time_zone("Eastern Time (US & Canada)")
+        if in_operating_window?(t)
+          # logon and reset sequence number
+          send_logon_and_reset
+        else
+          _info "DateTime #{t.to_s} is not within the operating window"
+          pause_listener
+        end
 
         autostart = options[:autostart] || options[:autostart].nil?
         async.run if autostart
@@ -64,6 +71,10 @@ module Damage
           sleep(0.1)
           read_message(@socket)
         end
+      end
+
+      def in_operating_window?(t)
+        true
       end
 
       def tick!
@@ -197,6 +208,10 @@ module Damage
 
       def strict?
         @strict
+      end
+
+      def listening?
+        @listening
       end
 
       def send_test_request
