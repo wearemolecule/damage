@@ -25,6 +25,39 @@ describe Damage::Vendor::IceClient do
     end
   end
 
+  describe '#shutdown_time?' do
+
+    subject { instance.shutdown_time?(time) }
+
+    context 'after 9 p.m. est' do
+      before do
+        t = Time.now.utc.in_time_zone("Eastern Time (US & Canada)")
+        Timecop.freeze(ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(t.year, t.month, t.day, 21, 01, 0))
+      end
+
+      let(:time) { Time.now.utc.in_time_zone("Eastern Time (US & Canada)") }
+      it { should be_true }
+
+      after do
+        Timecop.return
+      end
+    end
+
+    context 'befor 9 p.m. est' do
+      before do
+        t = Time.now.utc.in_time_zone("Eastern Time (US & Canada)")
+        Timecop.freeze(ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(t.year, t.month, t.day, 20, 01, 0))
+      end
+
+      let(:time) { Time.now.utc.in_time_zone("Eastern Time (US & Canada)") }
+      it { should be_false }
+
+      after do
+        Timecop.return
+      end
+    end
+  end
+
   describe '#in_operating_window?' do
     include_context "operating window"
 
