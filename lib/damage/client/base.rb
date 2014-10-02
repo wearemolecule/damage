@@ -39,7 +39,6 @@ module Damage
         self.schema = options[:schema] || Schema.new("schemas/#{options[:schema_name] || 'TTFIX42'}.xml")
         extra_persistence_options = options[:extra_persistence_options] || {}
         self.persistence = config.persistence_class.new(config.persistence_options.merge(extra_persistence_options))
-        self.socket = TCPSocket.new(options[:server_ip], options[:port])
         @msg_seq_num = self.persistence.current_sent_seq_num
         self.heartbeat_interval = config.heartbeat_int.to_i
         self.last_remote_heartbeat = Time.now
@@ -52,25 +51,38 @@ module Damage
         end
 
         setup_listeners(listeners)
-
-        t = Time.now.utc.in_time_zone("Eastern Time (US & Canada)")
-        if in_operating_window?(t)
-          # logon and reset sequence number
-          send_logon_and_reset
-        else
-          _info "DateTime #{t.to_s} is not within the operating window"
-          pause_listener
-        end
-
         autostart = options[:autostart] || options[:autostart].nil?
         async.run if autostart
       end
 
       def run
+        establish_session
         while @listening do
           sleep(0.1)
           read_message(@socket)
         end
+      end
+
+      def establish_session
+        if logged_out
+          _info "Establishing ICE FIX Session..."
+          if @socket.nil?
+            @socket = TCPSocket.new(options[:server_ip], options[:port])
+          end
+          @listening = true
+
+          t = Time.now.utc.in_time_zone("Eastern Time (US & Canada)")
+          if in_operating_window?(t)
+            # logon and reset sequence number
+            send_logon_and_reset
+          else
+            _info "DateTime #{t.to_s} is not within the operating window"
+            pause_listener
+          end
+        end
+      rescue IOError, Errno::EBADF, Errno::ECONNRESET => ex
+        _info "Connection Closed"
+        raise FixSocketClosedError, "socket was closed on us"
       end
 
       def in_operating_window?(t)
@@ -296,7 +308,7 @@ module Damage
 
       def resume_listener
         _info "Resuming listener..."
-        self.socket = TCPSocket.new(self.options[:server_ip], self.options[:port])
+        @socket = TCPSocket.new(self.options[:server_ip], self.options[:port])
         @listening = true
         async.run
       end

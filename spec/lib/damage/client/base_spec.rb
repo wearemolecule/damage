@@ -24,7 +24,7 @@ describe Damage::Client::Base do
   end
 
   before do
-    Celluloid.logger = nil
+    #Celluloid.logger = nil
     server
 
     instance
@@ -43,7 +43,7 @@ describe Damage::Client::Base do
     it { should be_a Hash }
     it { should include 'SenderCompID' }
     it { should include 'TargetCompID' }
-    it { should include 'MsgSeqNum' => server.received_messages.count + 1 }
+    it { should include 'MsgSeqNum' => 2 }
 
     context 'include the sender and target ids' do
       let(:options) { id_options.merge(base_options) }
@@ -70,6 +70,10 @@ describe Damage::Client::Base do
   end
 
   describe '#new' do
+    before do 
+      instance
+      sleep 2
+    end
     it "should send logon message" do
       server.received_messages.count.should eq 1
       server.received_messages.first.should match(/35=A/)
