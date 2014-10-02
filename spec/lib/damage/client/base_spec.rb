@@ -71,7 +71,8 @@ describe Damage::Client::Base do
 
   describe '#new' do
     before do 
-      instance.establish_session
+      instance
+      sleep 2
     end
     it "should send logon message" do
       server.received_messages.count.should eq 1
