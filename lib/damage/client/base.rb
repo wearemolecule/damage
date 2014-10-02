@@ -66,8 +66,9 @@ module Damage
       def establish_session
         if logged_out
           _info "Establishing ICE FIX Session..."
-          @socket.try(:close) if !@socket.nil?
-          @socket = TCPSocket.new(options[:server_ip], options[:port])
+          if @socket.nil?
+            @socket = TCPSocket.new(options[:server_ip], options[:port])
+          end
           @listening = true
 
           t = Time.now.utc.in_time_zone("Eastern Time (US & Canada)")
