@@ -112,6 +112,114 @@ describe Damage::Vendor::IceClient do
           it { should be_false }
         end
       end
+
+      context 'move time around' do
+        context 'Friday, at 2:30 p.m. est' do
+          before do
+            Timecop.travel(ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 10, 3, 14, 30, 0))
+          end
+
+          let(:time) { Time.now.utc.in_time_zone("Eastern Time (US & Canada)") }
+          it { should be_true }
+
+          after do
+            Timecop.return
+          end
+        end
+
+        context 'Friday, at 7:31 p.m. est' do
+          before do
+            Timecop.travel(ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 10, 3, 19, 31, 0))
+          end
+
+          let(:time) { Time.now.utc.in_time_zone("Eastern Time (US & Canada)") }
+          it { should be_false }
+
+          after do
+            Timecop.return
+          end
+        end
+
+        context 'Saturday, at 2:31 p.m. est' do
+          before do
+            Timecop.travel(ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 10, 4, 14, 31, 0))
+          end
+
+          let(:time) { Time.now.utc.in_time_zone("Eastern Time (US & Canada)") }
+          it { should be_false }
+
+          after do
+            Timecop.return
+          end
+        end
+
+        context 'Monday, at 2:31 p.m. est' do
+          before do
+            Timecop.travel(ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 10, 6, 14, 31, 0))
+          end
+
+          let(:time) { Time.now.utc.in_time_zone("Eastern Time (US & Canada)") }
+          it { should be_true }
+
+          after do
+            Timecop.return
+          end
+        end
+
+        context 'Tuesday, at 10:31 p.m. est' do
+          before do
+            Timecop.travel(ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 10, 7, 22, 31, 0))
+          end
+
+          let(:time) { Time.now.utc.in_time_zone("Eastern Time (US & Canada)") }
+          it { should be_false }
+
+          after do
+            Timecop.return
+          end
+        end
+
+        context 'Wednesday, at 00:01 a.m. est' do
+          before do
+            Timecop.travel(ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 10, 8, 0, 1, 0))
+          end
+
+          let(:time) { Time.now.utc.in_time_zone("Eastern Time (US & Canada)") }
+          it { should be_true}
+
+          after do
+            Timecop.return
+          end
+        end
+
+        context 'Wednesday, at 06:40 p.m. est' do
+          before do
+            Timecop.travel(ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 10, 8, 18, 40, 0))
+          end
+
+          let(:time) { Time.now.utc.in_time_zone("Eastern Time (US & Canada)") }
+          it { should be_false}
+
+          after do
+            Timecop.return
+          end
+        end
+
+        context 'Wednesday, at 08:40 p.m. est' do
+          before do
+            Timecop.travel(ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 10, 8, 20, 40, 0))
+          end
+
+          let(:time) { Time.now.utc.in_time_zone("Eastern Time (US & Canada)") }
+          it { should be_true}
+
+          after do
+            Timecop.return
+          end
+        end
+
+
+      end
     end
   end
 
