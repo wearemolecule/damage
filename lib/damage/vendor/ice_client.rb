@@ -31,7 +31,6 @@ module Damage
           Damage.configuration.logger.info "Stopping ICE FIX Listener since it's #{t.strftime('%H:%M:%S')}"
           if logged_in?
             send_logout
-            sleep(1)
           else
             pause_listener
           end
@@ -68,20 +67,14 @@ module Damage
         !in_operating_window?(t)
       end
 
-      def _within_time_range?(t)
+      def in_weekday_maintenance_window?(t)
         (t.to_i >= ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(t.year, t.month, t.day, 18, 28, 0).to_i &&
          t.to_i <= ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(t.year, t.month, t.day, 19, 32, 0).to_i)
-
       end
 
       def _within_weekday_operating_range?(t)
         return false unless t.weekday?
-
-        if t.friday?
-          t < ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(t.year, t.month, t.day, 18, 28, 0)
-        else
-          !_within_time_range?(t)
-        end
+        !in_weekday_maintenance_window?(t) && !(t.friday? && t.to_i > ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(t.year, t.month, t.day, 18, 28, 0).to_i)
       end
 
       def _within_weekend_operating_range?(t)
@@ -100,6 +93,7 @@ module Damage
       def send_logout
         @listening = false
         _send_message("Logout",{})
+        sleep(1)
       end
 
       def logged_in?
