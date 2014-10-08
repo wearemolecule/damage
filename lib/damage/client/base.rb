@@ -233,10 +233,7 @@ module Damage
       def send_logon_and_reset
         @msg_seq_num = 1
         # wipe out messages for account (they will still be in fix_message_history collection)
-        if @listeners.has_key?('TradeCaptureReport')
-          listener = @listeners['TradeCaptureReport'].new
-          listener.clear_fix_messages(options[:account])
-        end
+        persistence.clear_fix_messages
 
         params = {
           'EncryptMethod' => "0",

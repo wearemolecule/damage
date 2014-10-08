@@ -101,13 +101,7 @@ module Damage
       end
 
       def last_transaction_time
-        # ICE only stores current + previous day's history
-        yesterday = Time.now.utc.yesterday.beginning_of_day
-        # Get the last TradeCaptureReportReceived (msg_type == 'AE')
-        last_message = FixMessage.desc(:created_at).where(msg_type: 'AE').limit(1).first.try(:created_at) || yesterday
-        history_last_message = FixMessageHistory.desc(:created_at).where(msg_type: 'AE').limit(1).first.try(:created_at) || yesterday
-        last_update = [last_message, history_last_message, yesterday].max
-        last_update
+        persistence.last_report_received
       end
     end
   end

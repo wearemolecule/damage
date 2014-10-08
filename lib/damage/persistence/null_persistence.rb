@@ -27,6 +27,13 @@ module Damage
       def current_sent_seq_num
         1
       end
+      
+      def clear_fix_messages
+      end
+
+      def last_report_received
+        Time.now.utc.yesterday.beginning_of_day
+      end
     end
   end
 end
