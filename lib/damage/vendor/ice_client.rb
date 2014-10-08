@@ -20,7 +20,6 @@ module Damage
           'TradeDate' => last_trade_date,
           'TransactTime' => last_transact_time
         }
-        binding.pry
         message_str = Message.new(schema, "TradeCaptureReportRequest", default_headers, params, { strict: strict? }).full_message
         Damage.configuration.logger.info "Requesting trade capture with snapshot and subscription"
         send_message(socket, message_str)
