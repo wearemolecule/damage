@@ -93,7 +93,7 @@ module Damage
       def send_logout
         @listening = false
         _send_message("Logout",{})
-        sleep(1)
+        handle_logout
       end
 
       def logged_in?
