@@ -48,7 +48,6 @@ module Damage
           if in_operating_window?(t)
             Damage.configuration.logger.info "Starting ICE FIX Listener after maintenance window"
             resume_listener
-            send_logon_and_reset
           end
         end
       end
