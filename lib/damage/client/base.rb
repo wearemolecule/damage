@@ -146,7 +146,6 @@ module Damage
 
       def message_processor(response)
         self.last_remote_heartbeat = Time.now
-
         message_type = response.message_type
         _info "#{message_type} Received: #{response.message_hash}"
         case message_type
@@ -155,6 +154,7 @@ module Damage
         when "Logon"
           #successful logon - request any missing messages
           self.logged_out = false
+          async.send_sdr
           async.request_missing_messages
         when "Logout"
           handle_logout
@@ -188,6 +188,8 @@ module Damage
         self.logged_out = true
         self.terminate
       end
+
+      
 
       def setup_listeners(listener_classes)
         @listeners = Hash[*listener_classes.map { |l| [l.fix_message_name, l] }.flatten]
@@ -252,6 +254,18 @@ module Damage
           'ResetSeqNumFlag' => !config.persistent
         }
         _send_message("Logon", params)
+      end
+
+      def send_sdr
+        market_types = %w(0 1 2 44)
+        cfi_codes = %w(FXXXXX OXXXXX)
+        params = {
+          'SecurityReqID' => SecureRandom.hex.to_s,
+          'SecurityRequestType' => "3",
+          'SecurityID' => "1",
+          'CFICode' => cfi_codes[0]
+        }
+        _send_message("SecurityDefinitionRequest", params)
       end
 
       def send_logout

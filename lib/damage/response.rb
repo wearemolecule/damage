@@ -54,7 +54,7 @@ module Damage
     end
 
     def message_type
-      type_code = %r{35=([A-Z0-9]+)}.match(message)[1]
+      type_code = %r{35=([A-Z0-9]+)}i.match(message)[1]
       schema.msg_name(type_code)
     end
 
