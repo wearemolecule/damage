@@ -3796,6 +3796,41 @@
    <field name='UnderlyingStartValue' required='N' />
    <field name='UnderlyingCurrentValue' required='N' />
    <field name='UnderlyingEndValue' required='N' />
+   <field name='SecurityTradingStatus' required='N' />
+   <field name='IncrementPrice' required='N' />
+   <field name='IncrementQty' required='N' />
+   <field name='OffExchangeIncrementPrice' required='N' />
+   <field name='OffExchangeIncrementQty' required='N' />
+   <field name='LotSize' required='N' />
+   <field name='NumofCycles' required='N' />
+   <field name='LotSizeMultiplier' required='N' />
+   <field name='Clearable' required='N' />
+   <field name='StartDate' required='N' />
+   <field name='EndDate' required='N' />
+   <field name='StripId' required='N' />
+   <field name='StripType' required='N' />
+   <field name='StripName' required='N' />
+   <field name='HubId' required='N' />
+   <field name='HubName' required='N' />
+   <field name='HubAlias' required='N' />
+   <field name='PhysicalCode' required='N' />
+   <field name='UnderlyingUnitOfMeasure' required='N' />
+   <field name='PriceDenomination' required='N' />
+   <field name='PriceUnit' required='N' />
+   <field name='Granularity' required='N' />
+   <field name='NumOfDecimalPrice' required='N' />
+   <field name='NumOfDecimalQty' required='N' />
+   <field name='NumofDecimalStrikePrice' required='N' />
+   <field name='ProductId' required='N' />
+   <field name='ProductName' required='N' />
+   <field name='ProductDescription' required='N' />
+   <field name='TickValue' required='N' />
+   <field name='ImpliedType' required='N' />
+   <field name='PrimaryLegSymbol' required='N' />
+   <field name='SecondaryLegSymbol' required='N' />
+   <field name='IncrementStrike' required='N' />
+   <field name='MinStrike' required='N' />
+   <field name='MaxStrike' required='N' />
    <component name='UnderlyingStipulations' required='N' />
   </component>
   <component name='PositionQty'>
@@ -7028,6 +7063,7 @@
   <field number='954' name='Nested3PartySubIDType' type='INT' />
   <field number='955' name='LegContractSettlMonth' type='MONTHYEAR' />
   <field number='956' name='LegInterestAccrualDate' type='LOCALMKTDATE' />
+  <field number='998' name='UnderlyingUnitOfMeasure' type='STRING' />
   <field number="1126" name="OrigTradeID" type="STRING"/>
   <field number='9002' name='ImpliedType' type='CHAR'>
     <value enum='F' description='FULL SPREAD' />
@@ -7050,11 +7086,19 @@
     <value enum='Y' description='CLEARED' />
     <value enum='N' description="BILATERAL" />
   </field>
+  <field number='9040' name='OffExchangeIncrementPrice' type='CURRENCY' />
+  <field number='9041' name='OffExchangeIncrementQty' type='FLOAT' />
   <field number='9083' name='NumOfDecimalPrice' type='INT' />
   <field number='9084' name='NumOfDecimalQty' type='INT' />
   <field number='9032' name='TickValue' type='FLOAT' />
   <field number='9401' name='MinStrike' type='PRICE' />
   <field number='9402' name='MaxStrike' type='PRICE' />
+  <field number='9061' name='ProductId' type='STRING' />
+  <field number='9062' name='ProductName' type='STRING' />
+  <field number='9063' name='ProductDescription' type='STRING' />
+  <field number='9083' name='NumOfDecimalPrice' type='INT' />
+  <field number='9084' name='NumOfDecimalQty' type='INT' />
+  <field number='9085' name='Granularity' type='STRING' />
   <field number='9100' name='PriceDenomination' type='STRING' />
   <field number='9101' name='PriceUnit' type='STRING' />
   <field number='9200' name='StripType' type='INT' />

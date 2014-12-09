@@ -46,6 +46,8 @@ module Damage
         @listening = true
         self.logged_out = true
 
+        _info "ruby vm: " + RubyVM::DEFAULT_PARAMS.to_s
+
         self.heartbeat_timer = every(self.heartbeat_interval) do
           async.tick!
         end
@@ -146,15 +148,20 @@ module Damage
 
       def message_processor(response)
         self.last_remote_heartbeat = Time.now
-        message_type = response.message_type
-        _info "#{message_type} Received: #{response.message_hash}"
-        case message_type
+        message_name = response.message_name
+        _info "#{message_name} Received: #{response.message_hash}"
+        #if message_name == "SecurityDefinition"
+          # get hash of sdr into response
+        #  response = SecurityDefinitionResponse.new(response.original_message, schema: @schema)
+        #end
+
+        case message_name
         when "TestRequest"
           async.send_heartbeat(response.test_req_i_d)
         when "Logon"
           #successful logon - request any missing messages
           self.logged_out = false
-          async.send_sdr
+          #async.send_sdr
           async.request_missing_messages
         when "Logout"
           handle_logout
@@ -163,12 +170,12 @@ module Damage
         when "ResendRequest"
           async.resend_requests(response)
         else
-          if listeners.has_key?(message_type)
+          if listeners.has_key?(message_name)
             begin
-              processor_class = listeners[message_type]
-              _info "Found processor #{processor_class.to_s} for message of type #{message_type}"
+              processor_class = listeners[message_name]
+              _info "Found processor #{processor_class.to_s} for message of type #{message_name}"
               processor = processor_class.new
-              raise NotImplementedError, "Listener #{processor_class.to_s} (for message type #{message_type}) must implement #handle_message" unless processor.respond_to?(:handle_message)
+              raise NotImplementedError, "Listener #{processor_class.to_s} (for message name #{message_name}) must implement #handle_message" unless processor.respond_to?(:handle_message)
               _info "Handling message..."
               processor.handle_message(response, options)
               _info "Handling message complete"
@@ -177,7 +184,7 @@ module Damage
               _info e.backtrace
             end
           else
-            _info "No processor found for message of type #{message_type}"
+            _info "No processor found for message of type #{message_name}"
           end
         end
       rescue UnknownMessageTypeError

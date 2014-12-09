@@ -28,10 +28,10 @@ module Damage
     end
 
     def message_hash
-      @message_hash ||= _message_hash_from_components
+      @message_hash ||= message_hash_from_components
     end
 
-    def _message_tuples_from_components
+    def message_tuples_from_components
       message_components.map do |comp|
         numeric_key, raw_value = comp.split(/=/)
         keyword = schema.field_name(numeric_key)
@@ -41,7 +41,7 @@ module Damage
       end
     end
 
-    def _message_hash_from_components
+    def message_hash_from_components
       _message_tuples_from_components.inject(Hash.new) do |memo, tuple|
         key, value = tuple
         if memo.has_key?(key)
@@ -54,6 +54,10 @@ module Damage
     end
 
     def message_type
+      %r{35=([A-Z0-9]+)}i.match(message)[1]
+    end
+
+    def message_name
       type_code = %r{35=([A-Z0-9]+)}i.match(message)[1]
       schema.msg_name(type_code)
     end
