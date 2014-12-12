@@ -46,8 +46,6 @@ module Damage
         @listening = true
         self.logged_out = true
 
-        _info "ruby vm: " + RubyVM::DEFAULT_PARAMS.to_s
-
         self.heartbeat_timer = every(self.heartbeat_interval) do
           async.tick!
         end
