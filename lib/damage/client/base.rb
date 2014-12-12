@@ -140,22 +140,21 @@ module Damage
       end
 
       def handle_read_response(response)
-        persistence.persist_rcvd(response)
+        persistence.persist_rcvd(response) unless response.message_name == "SecurityDefinition"
         async.message_processor(response)
       end
 
       def message_processor(response)
         self.last_remote_heartbeat = Time.now
+        message_name = response.message_name
+        _info "Received #{message_name} message at #{Time.now}"
 
-        message_type = response.message_type
-        _info "#{message_type} Received: #{response.message_hash}"
-        case message_type
+        case message_name
         when "TestRequest"
           async.send_heartbeat(response.test_req_i_d)
         when "Logon"
           #successful logon - request any missing messages
-          self.logged_out = false
-          async.request_missing_messages
+          handle_logon
         when "Logout"
           handle_logout
         when "SequenceReset"
@@ -163,25 +162,30 @@ module Damage
         when "ResendRequest"
           async.resend_requests(response)
         else
-          if listeners.has_key?(message_type)
+          if listeners.has_key?(message_name)
             begin
-              processor_class = listeners[message_type]
-              _info "Found processor #{processor_class.to_s} for message of type #{message_type}"
+              processor_class = listeners[message_name]
+              _info "Found processor #{processor_class.to_s} for message of type #{message_name}"
               processor = processor_class.new
-              raise NotImplementedError, "Listener #{processor_class.to_s} (for message type #{message_type}) must implement #handle_message" unless processor.respond_to?(:handle_message)
-              _info "Handling message..."
+              raise NotImplementedError, "Listener #{processor_class.to_s} (for message name #{message_name}) must implement #handle_message" unless processor.respond_to?(:handle_message)
+              _info "Handling message... #{Time.now}"
               processor.handle_message(response, options)
-              _info "Handling message complete"
+              _info "Handling message complete. #{Time.now}"
             rescue StandardError => e
               _info e
               _info e.backtrace
             end
           else
-            _info "No processor found for message of type #{message_type}"
+            _info "No processor found for message of type #{message_name}"
           end
         end
       rescue UnknownMessageTypeError
         _info "Received unknown message #{response.message_hash}"
+      end
+
+      def handle_logon
+        self.logged_out = false
+        async.request_missing_messages
       end
 
       def handle_logout
@@ -252,6 +256,9 @@ module Damage
           'ResetSeqNumFlag' => !config.persistent
         }
         _send_message("Logon", params)
+      end
+
+      def send_sdr
       end
 
       def send_logout

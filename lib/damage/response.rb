@@ -28,10 +28,10 @@ module Damage
     end
 
     def message_hash
-      @message_hash ||= _message_hash_from_components
+      @message_hash ||= message_hash_from_components
     end
 
-    def _message_tuples_from_components
+    def message_tuples_from_components
       message_components.map do |comp|
         numeric_key, raw_value = comp.split(/=/)
         keyword = schema.field_name(numeric_key)
@@ -41,8 +41,8 @@ module Damage
       end
     end
 
-    def _message_hash_from_components
-      _message_tuples_from_components.inject(Hash.new) do |memo, tuple|
+    def message_hash_from_components
+      message_tuples_from_components.inject(Hash.new) do |memo, tuple|
         key, value = tuple
         if memo.has_key?(key)
           memo[key] = [memo[key]].flatten + [value]
@@ -54,7 +54,11 @@ module Damage
     end
 
     def message_type
-      type_code = %r{35=([A-Z0-9]+)}.match(message)[1]
+      %r{35=([A-Z0-9]+)}i.match(message)[1]
+    end
+
+    def message_name
+      type_code = %r{35=([A-Z0-9]+)}i.match(message)[1]
       schema.msg_name(type_code)
     end
 
@@ -70,20 +74,20 @@ module Damage
 
     #easy access to properties
     def respond_to?(meth)
-      _has_property?(_method_to_property_key(meth)) || super
+      has_property?(method_to_property_key(meth)) || super
     end
 
-    def _method_to_property_key(meth)
+    def method_to_property_key(meth)
       meth.to_s.camelize
     end
 
-    def _has_property?(key)
+    def has_property?(key)
       message_hash.has_key?(key) || schema.field_names_for_message(schema.msg_name(msg_type)).include?(key)
     end
 
     def method_missing(meth, *args, &block)
-      key = _method_to_property_key(meth)
-      if _has_property?(key)
+      key = method_to_property_key(meth)
+      if has_property?(key)
         message_hash[key]
       else
         super

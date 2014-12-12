@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Damage::Message do
   let(:klass) { self.described_class }
   let(:schema) { double("schema") }
-  let(:msg_to_type) { {message_type => "0"} }
+  let(:msg_to_type) { {message_name => "0"} }
   let(:name_to_num) do
     {
       "SendingTime" => "10", 
@@ -17,8 +17,8 @@ describe Damage::Message do
   let(:headers) { {} }
   let(:properties) { {} }
   let(:current_time) { Time.utc(2013,1,1,0,0,0) }
-  let(:message_type) { 'Heartbeat' }
-  let(:instance) { klass.new(schema, message_type, headers, properties) }
+  let(:message_name) { 'Heartbeat' }
+  let(:instance) { klass.new(schema, message_name, headers, properties) }
 
   before do
     schema.stub(:msg_type) { |type| msg_to_type[type] }
@@ -78,7 +78,7 @@ describe Damage::Message do
 
   describe '#properties_are_valid?' do
     subject { instance.properties_are_valid? }
-    before { schema.should_receive(:required_field_names_for_message).with(message_type).and_return([]) }
+    before { schema.should_receive(:required_field_names_for_message).with(message_name).and_return([]) }
     it { should be_true }
   end
 

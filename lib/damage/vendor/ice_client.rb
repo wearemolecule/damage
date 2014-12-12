@@ -25,6 +25,27 @@ module Damage
         send_message(socket, message_str)
       end
 
+      def send_sdr
+        return if !logged_in?
+
+        market_types = %w(0 1 2 44)
+        cfi_codes = %w(FXXXXX OXXXXX)
+        params = {
+          'SecurityReqID' => nil,
+          'SecurityRequestType' => "3",
+          'SecurityID' => nil,
+          'CFICode' => nil
+        }
+        market_types.each do |mt|
+          params['SecurityID'] = mt
+          cfi_codes.each do |cfi_code|
+            params['SecurityReqID'] = SecureRandom.hex.to_s
+            params['CFICode'] = cfi_code
+          _send_message("SecurityDefinitionRequest", params)
+          end
+        end
+      end
+
       def tick!
         t = Time.now.utc.in_time_zone("Eastern Time (US & Canada)")
         if shutdown_time?(t) && @listening
@@ -79,6 +100,16 @@ module Damage
       def _within_weekend_operating_range?(t)
         t.sunday? && t > ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(t.year, t.month, t.day, 17, 0, 0)
       end
+
+      def handle_logon
+        self.logged_out = false
+        if options['security_definition']
+          Damage.configuration.logger.info "Starting Security Definition Request..."
+          send_sdr
+        end
+        async.request_missing_messages
+      end
+
 
       def handle_logout
         self.logged_out = true

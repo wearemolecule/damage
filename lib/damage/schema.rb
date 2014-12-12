@@ -103,6 +103,10 @@ module Damage
       "FIX.#{major}.#{minor}"
     end
 
+    def msg(field, value)
+      message_lookup(field, value)
+    end
+
     private
     def message_lookup(field, value)
       element = document.xpath("//messages/message[@#{field}='#{value}']")[0]

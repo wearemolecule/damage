@@ -159,10 +159,13 @@ describe Damage::Response do
       it { message_hash['PartyRole'].index{ |pr| pr == 13 }.should eq message_hash['PartyID'].index{ |pi| pi == 'October Futures LLC' } }
       it { message_hash['PartyRole'].index{ |pr| pr == 11 }.should eq message_hash['PartyID'].index{ |pi| pi == 'e360power' } }
     end
+
   end
 
-  describe '#message_type' do
-    subject { instance.message_type }
+  
+
+  describe '#message_name' do
+    subject { instance.message_name }
 
     it { should eq "Heartbeat" }
   end
