@@ -1,3 +1,3 @@
 module Damage
-  VERSION = "0.2.23"
+  VERSION = "1.0.0"
 end

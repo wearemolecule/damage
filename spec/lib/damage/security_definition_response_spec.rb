@@ -18,9 +18,7 @@ describe Damage::SecurityDefinitionResponse do
 
       let(:instance) { klass.new(message, schema: schema) }
       before { schema.begin_string.should match %r{FIX\.4\.4} }
-      it do
-        binding.pry
-      end
+      
       it { message_hash['NoUnderlyings_group'].length.should eq 100 }
 
     end

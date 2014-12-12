@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Damage::Message do
   let(:klass) { self.described_class }
   let(:schema) { double("schema") }
-  let(:msg_to_type) { {message_namee => "0"} }
+  let(:msg_to_type) { {message_name => "0"} }
   let(:name_to_num) do
     {
       "SendingTime" => "10", 

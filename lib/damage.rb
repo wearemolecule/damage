@@ -15,7 +15,7 @@ require "damage/client/base"
 require "damage/client"
 require "damage/vendor"
 require "damage/message"
-#require "damage/message_definition"
+require "damage/message_definition"
 require "damage/message_listener"
 require "damage/message_resend_processor"
 require "damage/persistence/file_persistence"
@@ -23,8 +23,8 @@ require "damage/persistence/null_persistence"
 require "damage/response"
 require "damage/response_extractor"
 require "damage/schema"
+require "damage/security_definition_response"
 require "damage/version"
-#require "damage/security_definition_response"
 
 module Damage
   #ASCII Start Of Header

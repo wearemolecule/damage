@@ -142,27 +142,21 @@ module Damage
       end
 
       def handle_read_response(response)
-        persistence.persist_rcvd(response)
+        persistence.persist_rcvd(response) unless response.message_name == "SecurityDefinition"
         async.message_processor(response)
       end
 
       def message_processor(response)
         self.last_remote_heartbeat = Time.now
         message_name = response.message_name
-        _info "#{message_name} Received: #{response.message_hash}"
-        #if message_name == "SecurityDefinition"
-          # get hash of sdr into response
-        #  response = SecurityDefinitionResponse.new(response.original_message, schema: @schema)
-        #end
+        _info "Received #{message_name} message at #{Time.now}"
 
         case message_name
         when "TestRequest"
           async.send_heartbeat(response.test_req_i_d)
         when "Logon"
           #successful logon - request any missing messages
-          self.logged_out = false
-          #async.send_sdr
-          async.request_missing_messages
+          handle_logon
         when "Logout"
           handle_logout
         when "SequenceReset"
@@ -176,9 +170,9 @@ module Damage
               _info "Found processor #{processor_class.to_s} for message of type #{message_name}"
               processor = processor_class.new
               raise NotImplementedError, "Listener #{processor_class.to_s} (for message name #{message_name}) must implement #handle_message" unless processor.respond_to?(:handle_message)
-              _info "Handling message..."
+              _info "Handling message... #{Time.now}"
               processor.handle_message(response, options)
-              _info "Handling message complete"
+              _info "Handling message complete. #{Time.now}"
             rescue StandardError => e
               _info e
               _info e.backtrace
@@ -191,12 +185,15 @@ module Damage
         _info "Received unknown message #{response.message_hash}"
       end
 
+      def handle_logon
+        self.logged_out = false
+        async.request_missing_messages
+      end
+
       def handle_logout
         self.logged_out = true
         self.terminate
       end
-
-      
 
       def setup_listeners(listener_classes)
         @listeners = Hash[*listener_classes.map { |l| [l.fix_message_name, l] }.flatten]
@@ -264,15 +261,6 @@ module Damage
       end
 
       def send_sdr
-        market_types = %w(0 1 2 44)
-        cfi_codes = %w(FXXXXX OXXXXX)
-        params = {
-          'SecurityReqID' => SecureRandom.hex.to_s,
-          'SecurityRequestType' => "3",
-          'SecurityID' => "1",
-          'CFICode' => cfi_codes[0]
-        }
-        _send_message("SecurityDefinitionRequest", params)
       end
 
       def send_logout
