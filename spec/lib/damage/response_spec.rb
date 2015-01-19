@@ -154,10 +154,25 @@ describe Damage::Response do
       it { message_hash['PartyID'].should include 'e360power' }
       it { message_hash['PartyRole'].should include 13 }
       it { message_hash['PartyID'].should include 'October Futures LLC' }
+      it { message_hash['TrdType'].should eq '0' }
 
       # the party ID for a given role can be found by correlating the two arrays
       it { message_hash['PartyRole'].index{ |pr| pr == 13 }.should eq message_hash['PartyID'].index{ |pi| pi == 'October Futures LLC' } }
       it { message_hash['PartyRole'].index{ |pr| pr == 11 }.should eq message_hash['PartyID'].index{ |pi| pi == 'e360power' } }
+    end
+
+    context 'ICE Block Trade' do
+      let(:schema_path) { File.join(File.dirname(__FILE__), '../../../lib/damage/schemas/ICEFIX44.xml') }
+      let(:schema) { Damage::Schema.new(schema_path, relative: false) }
+      let(:message) do
+        "8=FIX.4.4\u00019=688\u000135=AE\u000149=ICE\u000134=123\u000152=20150115-21:56:31.623\u000156=6745\u000157=molecule\u0001571=1138510\u0001487=0\u0001856=0\u0001568=9a9c576437d46956ad4567e4f6e19d86\u0001828=K\u000117=58500348\u000139=2\u0001570=N\u000155=2514962\u000148=PMX SYF0016.Z0016_OMCE0000050002121815\u000122=8\u0001461=OCXXXX\u0001202=50.0\u00019403=91038190\u0001207=IFED\u00019064=0\u0001916=20160101\u0001917=20161231\u000132=100.0\u000131=1.2\u00019018=510\u00019022=4080\u000175=20150115\u000160=20150115-17:24:00.464\u00019413=3\u0001552=1\u000154=2\u000137=58500349\u000111=58500349\u0001453=10\u0001448=jpenelas3\u0001447=D\u0001452=11\u0001448=e360 Power LLC\u0001447=D\u0001452=13\u0001448=7789\u0001447=D\u0001452=56\u0001448=ICAP Energy LLC-Broker\u0001447=D\u0001452=1\u0001448=10025\u0001447=D\u0001452=61\u0001448=nsenese-icap\u0001447=D\u0001452=12\u0001448=8745\u0001447=D\u0001452=4\u0001448=NN044\u0001447=D\u0001452=51\u0001448=JP Morgan Securities LLC\u0001447=D\u0001452=60\u0001448=W\u0001447=D\u0001452=54\u000110=079\u0001"
+      end
+      let(:instance) { klass.new(message, schema: schema) }
+
+      before { schema.begin_string.should match %r{FIX\.4\.4} }
+
+      it { message_hash['TrdType'].should eq 'K' }
+      
     end
 
   end
