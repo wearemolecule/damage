@@ -6702,18 +6702,31 @@
    <value enum='0' description='EXPIREONTRADINGSESSIONCLOSE' />
    <value enum='1' description='EXPIREONTRADINGSESSIONOPEN' />
   </field>
-  <field number='828' name='TrdType' type='INT'>
+  <field number='828' name='TrdType' type='STRING'>
    <value enum='0' description='REGULARTRADE' />
-   <value enum='1' description='BLOCKTRADE' />
-   <value enum='10' description='AFTERHOURSTRADE' />
-   <value enum='2' description='EFP' />
-   <value enum='3' description='TRANSFER' />
-   <value enum='4' description='LATETRADE' />
-   <value enum='5' description='TTRADE' />
-   <value enum='6' description='WEIGHTEDAVERAGEPRICETRADE' />
-   <value enum='7' description='BUNCHEDTRADE' />
-   <value enum='8' description='LATEBUNCHEDTRADE' />
-   <value enum='9' description='PRIORREFERENCEPRICETRADE' />
+   <value enum='K' description='BLOCKTRADE' />
+   <value enum='E' description='EFP' />
+   <value enum='S' description='EFS' />
+   <value enum='V' description='BILATERALOFFEXCHANGETRADE' />
+   <value enum='O' description='NGEFPEFSTRADE' />
+   <value enum='9' description='CCXEFPTRADE' />
+   <value enum='J' description='EFRTRADE' />
+   <value enum='T' description='CONTRATRADE' />
+   <value enum='Y' description='CROSSCONTRATRADE' />
+   <value enum='F' description='EFSEFPCONTRATRADE' />
+   <value enum='A' description='OTHERCLEARINGVENUE' />
+   <value enum='I' description='EFM' />
+   <value enum='Q' description='EDO' />
+   <value enum='D' description='N2EX' />
+   <value enum='G' description='EEX' />
+   <value enum='U' description='CPBLK' />
+   <value enum='2' description='ICEEFRP' />
+   <value enum='3' description='ICEBLK' />
+   <value enum='4' description='BASIS' />
+   <value enum='5' description='GUARANTEEDCROSS' />
+   <value enum='6' description='VOLCONTINGENTTRADE' />
+   <value enum='7' description='STOCKCONTINGENTTRADE' />
+   <value enum='8' description='SUPERBLOCK' />
   </field>
   <field number='829' name='TrdSubType' type='INT' />
   <field number='830' name='TransferReason' type='STRING' />
