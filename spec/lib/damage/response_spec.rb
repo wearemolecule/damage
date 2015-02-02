@@ -175,6 +175,23 @@ describe Damage::Response do
       
     end
 
+    context 'ICE HHD Trade' do
+      let(:schema_path) { File.join(File.dirname(__FILE__), '../../../lib/damage/schemas/ICEFIX44.xml') }
+      let(:schema) { Damage::Schema.new(schema_path, relative: false) }
+      let(:message) do
+        "8=FIX.4.4\u00019=518\u000135=AE\u000149=ICE\u000134=604\u000152=20141229-20:09:49.616\u000156=6746\u000157=molecule\u0001571=499\u0001487=0\u0001856=0\u0001828=0\u0001150=F\u000117=745688037\u000139=2\u0001570=N\u000155=5108642\u000148=HHD SDJ0115.J0115\u000122=8\u0001461=FXXXXX\u0001207=IFED\u00019064=0\u0001916=20150401\u0001917=20150401\u000132=2500.0\u000131=4.0\u00019018=1\u00019022=1\u000175=20141229\u000160=20141229-20:09:49.581\u00019413=0\u0001552=1\u000154=2\u000137=1500148\u000111=409763250\u0001453=7\u0001448=e360power\u0001447=D\u0001452=11\u0001448=e360 Power Fund, LP\u0001447=D\u0001452=13\u0001448=7553\u0001447=D\u0001452=56\u0001448=8745\u0001447=D\u0001452=4\u0001448=25506\u0001447=D\u0001452=51\u0001448=JP Morgan Securities LLC\u0001447=D\u0001452=60\u0001448=W\u0001447=D\u0001452=54\u000110=053\u0001"
+      end
+      let(:instance) { klass.new(message, schema: schema) }
+
+      before { schema.begin_string.should match %r{FIX\.4\.4} }
+
+      it do
+        message_hash['SecurityID'].should eq 'HHD SDJ0115.J0115'
+        message_hash['NumOfLots'].should eq 1
+      end
+      
+    end
+
   end
 
   
