@@ -140,7 +140,7 @@ module Damage
       end
 
       def handle_read_response(response)
-        persistence.persist_rcvd(response) unless response.message_name == "SecurityDefinition"
+        persistence.persist_rcvd(response) unless ["SecurityDefinition", "TradeCaptureReport"].include? response.message_name
         async.message_processor(response)
       end
 
