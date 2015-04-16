@@ -306,6 +306,7 @@ module Damage
 
       def pause_listener
         _info "Pausing listener..."
+        ActiveRecord::Base.clear_all_connections!
         @listening = false
         @socket.try(:close)
       end
@@ -314,6 +315,7 @@ module Damage
         _info "Resuming listener..."
         @socket = TCPSocket.new(self.options[:server_ip], self.options[:port])
         @listening = true
+        ActiveRecord::Base.establish_connection
         async.run
       end
 
@@ -323,6 +325,7 @@ module Damage
         @listening = false
         @heartbeat_timer.try(:cancel)
         @socket.try(:close)
+        ActiveRecord::Base.clear_all_connections!
       end
 
       def _send_message(msg_type, msg_params)
