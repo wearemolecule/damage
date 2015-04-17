@@ -63,8 +63,10 @@ module Damage
             send_logout
           elsif in_operating_window?(t)
             send_heartbeat
-            if Resque.redis.get("ice:get_sdr") == "yes"
-              Resque.redis.set("ice:get_sdr", "no")
+            sdr_key = "ice:#{options[:account].id.to_s}:get_sdr"
+            Damage.configuration.logger.info "SDR key: #{sdr_key}"
+            if Resque.redis.get(sdr_key) == "yes"
+              Resque.redis.set(sdr_key, "no")
               send_sdr
             end
           end
