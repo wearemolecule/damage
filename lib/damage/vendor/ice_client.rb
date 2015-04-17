@@ -63,6 +63,10 @@ module Damage
             send_logout
           elsif in_operating_window?(t)
             send_heartbeat
+            if Resque.redis.get("ice:get_sdr") == "yes"
+              Resque.redis.set("ice:get_sdr", "no")
+              send_sdr
+            end
           end
         else
           Damage.configuration.logger.info "logged out in tick"
