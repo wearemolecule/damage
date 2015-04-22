@@ -65,14 +65,13 @@ module Damage
 
       def establish_session
         if logged_out
-          _info "Establishing ICE FIX Session..."
-          if @socket.nil?
-            @socket = TCPSocket.new(options[:server_ip], options[:port])
-          end
-          @listening = true
-
           t = Time.now.utc.in_time_zone("Eastern Time (US & Canada)")
           if in_operating_window?(t)
+            _info "Establishing ICE FIX Session..."
+            if @socket.nil?
+              @socket = TCPSocket.new(options[:server_ip], options[:port])
+            end
+            @listening = true
             # logon and reset sequence number
             send_logon_and_reset
           else
@@ -306,9 +305,9 @@ module Damage
 
       def pause_listener
         _info "Pausing listener..."
-        ActiveRecord::Base.clear_all_connections!
         @listening = false
         @socket.try(:close)
+        ActiveRecord::Base.clear_all_connections!
       end
 
       def resume_listener
