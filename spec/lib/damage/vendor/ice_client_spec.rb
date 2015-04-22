@@ -101,9 +101,9 @@ describe Damage::Vendor::IceClient do
         it { should be_false, "expected #{time} to not be in the operating window" }
       end
 
-      context 'after 7:30pm' do
+      context 'after midnight' do
         context 'Mon-Thu' do
-          let(:time) { ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 9, 16, 19, 32, 1) }
+          let(:time) { ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 9, 15, 0, 1, 1) }
           it { should be_true }
         end
 
@@ -211,7 +211,7 @@ describe Damage::Vendor::IceClient do
           end
 
           let(:time) { Time.now.utc.in_time_zone("Eastern Time (US & Canada)") }
-          it { should be_true}
+          it { should be_false}
 
           after do
             Timecop.return
@@ -256,9 +256,9 @@ describe Damage::Vendor::IceClient do
         it { should be_true, "expected #{time} to be in the window" }
       end
 
-      context 'after 7:30pm' do
+      context 'after midnight ' do
         context 'Mon-Thu' do
-          let(:time) { ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 9, 11, 20, 0) }
+          let(:time) { ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 9, 12, 0, 1) }
           it { should be_false }
         end
 
@@ -295,9 +295,9 @@ describe Damage::Vendor::IceClient do
         it { subject.should be_false }
       end
 
-      context 'after 7:30pm' do
+      context 'after midnight' do
         context 'Mon-Thu' do
-          let(:time) {  ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 9, 11, 20, 0, 0) } # Thu, 8pm
+          let(:time) {  ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(2014, 9, 12, 0, 1, 0) } # Thu, 8pm
           it { should be_true }
         end
 
