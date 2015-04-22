@@ -95,7 +95,7 @@ module Damage
 
       def in_weekday_maintenance_window?(t)
         (t.to_i >= ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(t.year, t.month, t.day, 18, 28, 0).to_i &&
-         t.to_i <= ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(t.year, t.month, t.day, 19, 32, 0).to_i)
+         t.to_i <= ActiveSupport::TimeZone.new('Eastern Time (US & Canada)').local(t.year, t.month, t.day, 21, 0, 0).to_i)
       end
 
       def _within_weekday_operating_range?(t)
