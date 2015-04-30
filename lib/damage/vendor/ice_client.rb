@@ -25,10 +25,9 @@ module Damage
         send_message(socket, message_str)
       end
 
-      def send_sdr
+      def send_sdr(market_type)
         return if !logged_in?
 
-        market_types = %w(0 1 2 44)
         cfi_codes = %w(FXXXXX OXXXXX)
         params = {
           'SecurityReqID' => nil,
@@ -36,13 +35,11 @@ module Damage
           'SecurityID' => nil,
           'CFICode' => nil
         }
-        market_types.each do |mt|
-          params['SecurityID'] = mt
-          cfi_codes.each do |cfi_code|
-            params['SecurityReqID'] = SecureRandom.hex.to_s
-            params['CFICode'] = cfi_code
+        params['SecurityID'] = market_type
+        cfi_codes.each do |cfi_code|
+          params['SecurityReqID'] = SecureRandom.hex.to_s
+          params['CFICode'] = cfi_code
           _send_message("SecurityDefinitionRequest", params)
-          end
         end
       end
 
@@ -63,11 +60,12 @@ module Damage
             send_logout
           elsif in_operating_window?(t)
             send_heartbeat
-            sdr_key = "ice:#{options[:account].id.to_s}:get_sdr"
-            Damage.configuration.logger.info "SDR key: #{sdr_key}"
-            if Resque.redis.get(sdr_key) == "yes"
+            sdr_key = "ice:sdr:#{options[:account].id.to_s}"
+            market_type = Resque.redis.get(sdr_key)
+            if !market_type.blank? && market_type != "no"
+              Damage.configuration.logger.info "Sending Security Definition Request. Account: #{options[:account].id.to_s}, market type: #{market_type}"
               Resque.redis.set(sdr_key, "no")
-              send_sdr
+              send_sdr(market_type)
             end
           end
         else
