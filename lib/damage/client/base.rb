@@ -81,6 +81,8 @@ module Damage
         end
       rescue IOError, Errno::EBADF, Errno::ECONNRESET => ex
         _info "Connection Closed"
+        # wait for 20 seconds.  ICE has a 15 second throttle limit for logon requests
+        sleep 20
         raise FixSocketClosedError, "socket was closed on us"
       end
 
