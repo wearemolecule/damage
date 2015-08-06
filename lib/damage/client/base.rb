@@ -20,6 +20,7 @@ module Damage
                     :persistence,
                     :schema,
                     :logged_out,
+                    :logout_time,
                     :last_remote_heartbeat,
                     :heartbeat_interval,
                     :strict
@@ -45,6 +46,7 @@ module Damage
         self.strict = options[:strict] || options[:strict].nil?
         @listening = true
         self.logged_out = true
+        self.logout_time = nil
 
         self.heartbeat_timer = every(self.heartbeat_interval) do
           async.tick!
@@ -64,9 +66,9 @@ module Damage
       end
 
       def establish_session
-        if logged_out
-          t = Time.now.utc.in_time_zone("Eastern Time (US & Canada)")
-          if in_operating_window?(t)
+        t = Time.now.utc.in_time_zone("Eastern Time (US & Canada)")
+        if logged_out && can_login_again?(t)
+          if in_operating_window?(t) 
             _info "Establishing ICE FIX Session..."
             if @socket.nil?
               @socket = TCPSocket.new(options[:server_ip], options[:port])
@@ -88,6 +90,10 @@ module Damage
 
       def in_operating_window?(t)
         true
+      end
+      
+      def can_login_again?(t)
+        self.logout_time.nil? || ((t - self.logout_time) > 15)
       end
 
       def tick!
@@ -128,6 +134,8 @@ module Damage
         handle_read_message(data)
       rescue IOError, Errno::EBADF, Errno::ECONNRESET => ex
         _info "Connection Closed"
+        # wait for 20 seconds.  ICE has a 15 second throttle limit for logon requests
+        sleep 20
         raise FixSocketClosedError, "socket was closed on us" if @listening
       rescue Errno::ETIMEDOUT
         #no biggie, keep listening
@@ -186,11 +194,13 @@ module Damage
 
       def handle_logon
         self.logged_out = false
+        self.logout_time = nil
         async.request_missing_messages
       end
 
       def handle_logout
         self.logged_out = true
+        self.logout_time = Time.now.utc.in_time_zone("Eastern Time (US & Canada)")
         self.terminate
       end
 
