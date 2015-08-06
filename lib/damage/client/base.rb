@@ -20,10 +20,10 @@ module Damage
                     :persistence,
                     :schema,
                     :logged_out,
+                    :logout_time,
                     :last_remote_heartbeat,
                     :heartbeat_interval,
-                    :strict,
-                    :logout_time
+                    :strict
       attr_reader :test_request_sent
 
       module ClassMethods
@@ -46,6 +46,7 @@ module Damage
         self.strict = options[:strict] || options[:strict].nil?
         @listening = true
         self.logged_out = true
+        self.logout_time = nil
 
         self.heartbeat_timer = every(self.heartbeat_interval) do
           async.tick!
@@ -65,9 +66,9 @@ module Damage
       end
 
       def establish_session
-        if logged_out
-          t = Time.now.utc.in_time_zone("Eastern Time (US & Canada)")
-          if in_operating_window?(t) && can_login_again?(t)
+        t = Time.now.utc.in_time_zone("Eastern Time (US & Canada)")
+        if logged_out && can_login_again?(t)
+          if in_operating_window?(t) 
             _info "Establishing ICE FIX Session..."
             if @socket.nil?
               @socket = TCPSocket.new(options[:server_ip], options[:port])
@@ -92,7 +93,7 @@ module Damage
       end
       
       def can_login_again?(t)
-        logout_time.present? && (t - logout_time) > 15.seconds
+        self.logout_time.nil? || ((t - self.logout_time) > 15)
       end
 
       def tick!
@@ -193,6 +194,7 @@ module Damage
 
       def handle_logon
         self.logged_out = false
+        self.logout_time = nil
         async.request_missing_messages
       end
 

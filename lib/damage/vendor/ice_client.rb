@@ -107,6 +107,7 @@ module Damage
 
       def handle_logon
         self.logged_out = false
+        self.logout_time = nil
         if options['security_definition']
           Damage.configuration.logger.info "Starting Security Definition Request..."
           send_sdr
@@ -117,6 +118,7 @@ module Damage
 
       def handle_logout
         self.logged_out = true
+        self.logout_time = Time.now.utc.in_time_zone("Eastern Time (US & Canada)")
         pause_listener
       end
 
