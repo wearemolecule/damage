@@ -22,7 +22,8 @@ module Damage
                     :logged_out,
                     :last_remote_heartbeat,
                     :heartbeat_interval,
-                    :strict
+                    :strict,
+                    :logout_time
       attr_reader :test_request_sent
 
       module ClassMethods
@@ -66,7 +67,7 @@ module Damage
       def establish_session
         if logged_out
           t = Time.now.utc.in_time_zone("Eastern Time (US & Canada)")
-          if in_operating_window?(t)
+          if in_operating_window?(t) && can_login_again?(t)
             _info "Establishing ICE FIX Session..."
             if @socket.nil?
               @socket = TCPSocket.new(options[:server_ip], options[:port])
@@ -88,6 +89,10 @@ module Damage
 
       def in_operating_window?(t)
         true
+      end
+      
+      def can_login_again?(t)
+        logout_time.present? && (t - logout_time) > 15.seconds
       end
 
       def tick!
@@ -128,6 +133,8 @@ module Damage
         handle_read_message(data)
       rescue IOError, Errno::EBADF, Errno::ECONNRESET => ex
         _info "Connection Closed"
+        # wait for 20 seconds.  ICE has a 15 second throttle limit for logon requests
+        sleep 20
         raise FixSocketClosedError, "socket was closed on us" if @listening
       rescue Errno::ETIMEDOUT
         #no biggie, keep listening
@@ -191,6 +198,7 @@ module Damage
 
       def handle_logout
         self.logged_out = true
+        self.logout_time = Time.now.utc.in_time_zone("Eastern Time (US & Canada)")
         self.terminate
       end
 
