@@ -19,7 +19,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency "activesupport", ">= 3.2.16"
-  spec.add_dependency "celluloid"
+  spec.add_dependency "celluloid", "0.16.0"
   spec.add_dependency "celluloid-io"
   spec.add_dependency "nokogiri"
   spec.add_dependency "thor"
